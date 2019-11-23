@@ -68,9 +68,10 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 
       std::vector<float> *Bc_decayVertexX, *Bc_decayVertexY, *Bc_decayVertexZ;
       std::vector<double> *Bc_decayVertexXError, *Bc_decayVertexYError, *Bc_decayVertexZError;
-      std::vector<double> *Bc_decayVertexXYError, *Bc_decayVertexXZError, *Bc_decayVertexYZError;
+      std::vector<double> *Bc_decayVertexYXError, *Bc_decayVertexZXError, *Bc_decayVertexZYError;
       
       std::vector<float> *Bc_mass, *Bc_px, *Bc_py, *Bc_pz;
+      std::vector<int> *Bc_charge;
 
       // J/Psi particles coming from Bc
       std::vector<float> *Bc_jpsi_chi2;
@@ -79,13 +80,14 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
       std::vector<float> *Bc_jpsi_mass, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
 
       // Muons coming from J/Psi
-      std::vector<float> *Bc_jpsi_mu1_mass, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
-      std::vector<float> *Bc_jpsi_mu2_mass, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
+      std::vector<float> *Bc_jpsi_mu1_pt, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
+      std::vector<float> *Bc_jpsi_mu2_pt, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
       std::vector<int> *Bc_jpsi_mu1_charge, *Bc_jpsi_mu2_charge;
 
       // Muon coming from Bc
       unsigned int nMuons;
-      std::vector<float> *Bc_mu_mass, *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
+      std::vector<float> *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
+      std::vector<float> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
       std::vector<int> *Bc_mu_charge;
 
 
