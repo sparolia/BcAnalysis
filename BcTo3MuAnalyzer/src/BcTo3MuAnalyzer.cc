@@ -27,15 +27,6 @@
 #include "RecoVertex/KinematicFit/interface/TwoTrackMassKinematicConstraint.h"
 
 
-
-
-
-
-
-
-
-
-
 // (Default) user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -45,8 +36,8 @@
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
 // user include files
-#include "RJPsiAnalyzers/BcTo3MuAnalyzer/src/BcTo3MuAnalyzer.h"
-
+//#include "RJPsiAnalyzers/BcTo3MuAnalyzer/src/BcTo3MuAnalyzer.h"
+#include "BcTo3MuAnalyzer.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
@@ -95,7 +86,11 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   // Event information
   run(0), event(0), lumiblock(0),
 
+  // Trigger matching
+  triggerMatchDimuon25(0), triggerMatchDimuon20(0), triggerMatchJpsiTk(0),
+
   // Primary vertex
+  primaryVertexChi2(0)
   nPrimaryVertices(0),
   primaryVertexX(0), primaryVertexY(0), primaryVertexZ(0),
   primaryVertexXError(0), primaryVertexYError(0), primaryVertexZError(0),
@@ -125,7 +120,22 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   nMuons(0),
   Bc_mu_px(0), Bc_mu_py(0), Bc_mu_pz(0),
   Bc_mu_px_noFit(0), Bc_mu_py_noFit(0), Bc_mu_pz_noFit(0),
-  Bc_mu_charge(0)
+  Bc_mu_charge(0),
+
+  // Muon IDs and other properties
+  muonPositiveChi2(0), muonNegativeChi2(0),
+  muonPositiveNumHits(0), muonPositiveNumPixelHits(0),
+  muonNegativeNumHits(0), muonNegativeNumPixelHits(0),
+  muonPositiveDxy(0), muonPositiveDz(0),
+  muonNegativeDxy(0), muonNegativeDz(0),
+  muonDCA(0),
+  
+  isMuon1Soft(0), isMuon2Soft(0),
+  isMuon1Tight(0), isMuon2Tight(0),
+  isMuon1PF(0), isMuon2PF(0),
+  isMuon1Loose(0), isMuon2Loose(0)
+
+  
   
 
   
@@ -193,6 +203,9 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    primaryVertexXZError = bestVertex.covariance(0,2);
    primaryVertexYZError = bestVertex.covariance(1,2);
 
+
+   
+   primaryVertexChi2 = ChiSquaredProbability((double)(bestVertex.chi2()),(double)(bestVertex.ndof()));
    nPrimaryVertices = thePrimaryVerticesHandle->size();
 
    lumiblock = iEvent.id().luminosityBlock();
@@ -469,16 +482,137 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          if(muHLTMatches1_t1.size() > 0 && muHLTMatches2_t1.size() > 0) triggerMatchDimuon25_tmp = 1;
          if(muHLTMatches1_t2.size() > 0 && muHLTMatches2_t2.size() > 0) triggerMatchJpsiTk_tmp = 1;
          if(muHLTMatches1_t3.size() > 0 && muHLTMatches2_t3.size() > 0) triggerMatchDimuon20_tmp = 1;
-         
+		 
+		 triggerMatchDimuon25->push_back(triggerMatchDimuon25_tmp);
+		 triggerMatchJpsiTk->push_back(triggerMatchJpsiTk_tmp);
+		 triggerMatchDimuon20->push_back(triggerMatchDimuon20_tmp);
+
+		 // Muon IDs and other properties
+
+		 isMuon1Soft->push_back(patMuon1->isSoftMuon(bestVertex));
+		 isMuon1Tight->push_back(patMuon1->isTightMuon(bestVertex));
+		 isMuon1PF->push_back(patMuon1->isPFMuon(bestVertex));
+		 isMuon1Loose->push_back(patMuon1->isLooseMuon(bestVertex));
+
+		 isMuon2Soft->push_back(patMuon2->isSoftMuon(bestVertex));
+		 isMuon2Tight->push_back(patMuon2->isTightMuon(bestVertex));
+		 isMuon2PF->push_back(patMuon2->isPFMuon(bestVertex));
+		 isMuon2Loose->push_back(patMuon2->isLooseMuon(bestVertex));
+
+		 muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
+		 muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
+		 muonPositiveNumPixelHits->push_back(globalTrackMuPositive->bumberOfValidPixelHits());
+		 muonPositiveDxy->push_back(globalTrackMuPositive->dxy(bestVertex.position()));
+		 muonPositiveDz->push_back(globalTrackMuPositive->dz(bestVertex.position()));
+
+		 
+		 muonNegativeChi2->push_back(globalTrackMuNegative->normalizedChi2());
+		 muonNegativeNumHits->push_back(globalTrackMuNegative->numberOfValidHits());
+		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->bumberOfValidPixelHits());
+		 muonNegativeDxy->push_back(globalTrackMuNegative->dxy(bestVertex.position()));
+		 muonNegativeDz->push_back(globalTrackMuNegative->dz(bestVertex.position()));
+		 muonDCA->push_back(dca);
+
+		 nBc++;
+		 muonParticles.clear();
+		 vectorFitParticles.clear();
+		 
        }
-
-       
-
-
-
-
      }
    }
+if(nBc > 0)
+{
+	tree_->Fill();
+}
+nBc = 0;
+nMuons = 0;
+Bc_charge->clear();
+Bc_mass->clear();
+Bc_px->clear();
+Bc_py->clear();
+Bc_pz->clear();
+
+Bc_mu_px->clear();
+Bc_mu_py->clear();
+Bc_mu_pz->clear();
+Bc_mu_charge->clear();
+
+Bc_mu_px_noFit->clear();
+Bc_mu_py_noFit->clear();
+Bc_mu_pz_noFit->clear();
+
+Bc_jpsi_mass->clear();
+Bc_jpsi_px->clear();
+Bc_jpsi_py->clear();
+Bc_jpsi_pz->clear();
+
+Bc_jpsi_mu1_pt->clear();
+Bc_jpsi_mu1_px->clear();
+Bc_jpsi_mu1_py->clear();
+Bc_jpsi_mu1_pz->clear();
+Bc_jpsi_mu2_pt->clear();
+Bc_jpsi_mu2_px->clear();
+Bc_jpsi_mu2_py->clear();
+Bc_jpsi_mu2_pz->clear();
+
+Bc_chi2->clear();
+Bc_vertexProbability->clear();
+Bc_jpsi_chi2->clear();
+Bc_jpsi_vertexProbability->clear();
+
+Bc_decayVertexX->clear();
+Bc_decayVertexXError->clear();
+Bc_decayVertexY->clear();
+Bc_decayVertexYError->clear();
+Bc_decayVertexZ->clear();
+Bc_decayVertexZError->clear();
+Bc_decayVertexYX->clear();
+Bc_decayVertexYXError->clear();
+Bc_decayVertexZX->clear();
+Bc_decayVertexZXError->clear();
+Bc_decayVertexZY->clear();
+Bc_decayVertexZYError->clear();
+
+nPrimaryVertices=0;
+primaryVertexChi2=0;
+
+primaryVertexX=0;
+primaryVertexXError=0;
+primaryVertexY=0;
+primaryVertexYError=0;
+primaryVertexZ=0;
+primaryVertexZError=0;
+primaryVertexXYError=0;
+primaryVertexXZError=0;
+primaryVertexYZError=0;
+
+muonPositiveChi2->clear();
+muonPositiveDxy->clear();
+muonPositiveDz->clear();
+muonPositiveNumHits->clear();
+muonPositiveNumPixelHits->clear();
+
+muonNegativeChi2->clear();
+muonNegativeDxy->clear();
+muonNegativeDz->clear();
+muonNegativeNumHits->clear();
+muonNegativeNumPixelHits->clear();
+
+muonDCA->clear();
+
+triggerMatchDimuon20->clear();
+triggerMatchDimuon25->clear();
+triggerMatchJpsiTk->clear();
+
+isMuon1Soft->clear();
+isMuon1Tight->clear();
+isMuon1PF->clear();
+isMuon1Loose->clear();
+
+isMuon2Soft->clear();
+isMuon2Tight->clear();
+isMuon2PF->clear();
+isMuon2Loose->clear();
 
 
 
@@ -489,12 +623,114 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 void
 BcTo3MuAnalyzer::beginJob()
 {
+	std::cout << "Begin analyzer job" << std::endl;
+
+	edm::Service<TFileService> fs;
+	tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
+
+	tree_->Branch("nBC",&nBc,"nBc/i");
+	tree_->Branch("nMuons",&nMuons,"nMuons/i");
+
+	tree_->Branch("Bc_charge",&Bc_charge);
+	tree_->Branch("Bc_mass",&Bc_mass);
+	tree_->Branch("Bc_px",&Bc_px);
+	tree_->Branch("Bc_py",&Bc_py);
+	tree_->Branch("Bc_pz",&Bc_pz);
+
+	tree_->Branch("Bc_mu_charge",&Bc_mu_charge);
+	tree_->Branch("Bc_mu_px",&Bc_mu_px);
+	tree_->Branch("Bc_mu_py",&Bc_mu_py);
+	tree_->Branch("Bc_mu_pz",&Bc_mu_pz);
+	tree_->Branch("Bc_mu_px_noFit",&Bc_mu_px_noFit);
+	tree_->Branch("Bc_mu_py_noFit",&Bc_mu_py_noFit);
+	tree_->Branch("Bc_mu_pz_noFit",&Bc_mu_pz_noFit);
+
+
+	tree_->Branch("Bc_jpsi_mass",&Bc_jpsi_mass);
+	tree_->Branch("Bc_jpsi_px",&Bc_jpsi_px);
+	tree_->Branch("Bc_jpsi_py",&Bc_jpsi_py);
+	tree_->Branch("Bc_jpsi_pz",&Bc_jpsi_pz);
+
+	tree_->Branch("Bc_jpsi_mu1_pt",&Bc_jpsi_mu1_pt);
+	tree_->Branch("Bc_jpsi_mu1_px",&Bc_jpsi_mu1_px);
+	tree_->Branch("Bc_jpsi_mu1_py",&Bc_jpsi_mu1_py);
+	tree_->Branch("Bc_jpsi_mu1_pz",&Bc_jpsi_mu1_pz);
+	tree_->Branch("Bc_jpsi_mu1_charge",&Bc_jpsi_mu1_charge);
+
+	tree_->Branch("Bc_jpsi_mu2_pt",&Bc_jpsi_mu2_pt);
+	tree_->Branch("Bc_jpsi_mu2_px",&Bc_jpsi_mu2_px);
+	tree_->Branch("Bc_jpsi_mu2_py",&Bc_jpsi_mu2_py);
+	tree_->Branch("Bc_jpsi_mu2_pz",&Bc_jpsi_mu2_pz);
+	tree_->Branch("Bc_jpsi_mu2_charge",&Bc_jpsi_mu2_charge);
+	
+
+
+	tree_->Branch("Bc_chi2",&Bc_chi2);
+	tree_->Branch("Bc_jpsi_chi2",&Bc_jpsi_chi2);
+	tree_->Branch("Bc_vertexProbability",&Bc_vertexProbability);
+	tree_->Branch("Bc_jpsi_vertexProbability",&Bc_jpsi_vertexProbability);
+
+	tree_->Branch("Bc_decayVertexX",&Bc_decayVertexX);
+	tree_->Branch("Bc_decayVertexY",&Bc_decayVertexY);
+	tree_->Branch("Bc_decayVertexZ",&Bc_decayVertexZ);
+	tree_->Branch("Bc_decayVertexXError",&Bc_decayVertexXError);
+	tree_->Branch("Bc_decayVertexYError",&Bc_decayVertexYError);
+	tree_->Branch("Bc_decayVertexZError",&Bc_decayVertexZError);
+	tree_->Branch("Bc_decayVertexYXError",&Bc_decayVertexYXError);
+	tree_->Branch("Bc_decayVertexZXError",&Bc_decayVertexZXError);
+	tree_->Branch("Bc_decayVertexZYError",&Bc_decayVertexZYError);
+
+	tree_->Branch("primaryVertexX",&primaryVertexX);
+	tree_->Branch("primaryVertexY",&primaryVertexY);
+	tree_->Branch("primaryVertexZ",&primaryVertexZ);
+	tree_->Branch("primaryVertexXError",&primaryVertexXError);
+	tree_->Branch("primaryVertexYError",&primaryVertexYError);
+	tree_->Branch("primaryVertexZError",&primaryVertexZError);
+	tree_->Branch("primaryVertexXYError",&primaryVertexXYError);
+	tree_->Branch("primaryVertexYZError",&primaryVertexYZError);
+	tree_->Branch("primaryVertexXZError",&primaryVertexXZError);
+	tree_->Branch("primaryVertexChi2",&primaryVertexChi2);
+
+
+	tree_->Branch("nPrimaryVertices",&nPrimaryVertices);
+	tree_->Branch("run",&run, "run/I");
+	tree_->Branch("event",&event, "event/I");
+	tree_->Branch("lumiblock",&lumiblock, "lumiblock/I");
+
+	tree_->Branch("muonNegativeChi2",&muonNegativeChi2);
+	tree_->Branch("muonNegativeNumHits",&muonNegativeNumHits);
+	tree_->Branch("muonNegativeNumPixelHits",&muonNegativeNumPixelHits);
+	tree_->Branch("muonNegativeDxy",&muonNegativeDxy);
+	tree_->Branch("muonNegativeDz",&muonNegativeDz);
+	tree_->Branch("muonPositiveChi2",&muonPositiveChi2);
+	tree_->Branch("muonPositiveNumHits",&muonPositiveNumHits);
+	tree_->Branch("muonPositiveNumPixelHits",&muonPositiveNumPixelHits);
+	tree_->Branch("muonPositiveDxy",&muonPositiveDxy);
+	tree_->Branch("muonPositiveDz",&muonPositiveDz);
+	tree_->Branch("muonDCA",&muonDCA);
+
+	tree_->Branch("triggerMatchJpsiTk",&triggerMatchJpsiTk);
+	tree_->Branch("triggerMatchDimuon20",&triggerMatchDimuon20);
+	tree_->Branch("triggerMatchDimuon25",&triggerMatchDimuon25);
+
+	tree_->Branch("isMuon1Soft",&isMuon1Soft);
+	tree_->Branch("isMuon1Tight",&isMuon1Tight);
+	tree_->Branch("isMuon1PF",&isMuon1PF);
+	tree_->Branch("isMuon1Loose",&isMuon1Loose);
+	tree_->Branch("isMuon2Soft",&isMuon2Soft);
+	tree_->Branch("isMuon2Tight",&isMuon2Tight);
+	tree_->Branch("isMuon2PF",&isMuon2PF);
+	tree_->Branch("isMuon2Loose",&isMuon2Loose);
+
+
 }
 
 // ------------ method called once each job just after ending the event loop  ------------
 void
 BcTo3MuAnalyzer::endJob()
 {
+	tree_->GetDirectory()->cd();
+	tree_->Write();
 }
 
 // ------------ method fills 'descriptions' with the allowed parameters for the module  ------------

@@ -54,8 +54,13 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
       TTree* tree_;
       // Event information
       int run, event, lumiblock;
+
+	  // Trigger match
+	  std::vector<int>  *triggerMatchDimuon25, *triggerMatchDimuon20, *triggerMatchJpsiTk;
+
       
       // Primary vertex
+	  float primaryVertexChi2;
       unsigned int nPrimaryVertices;
       float primaryVertexX, primaryVertexY, primaryVertexZ;
       float primaryVertexXError, primaryVertexYError, primaryVertexZError;
@@ -89,6 +94,21 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
       std::vector<float> *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
       std::vector<float> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
       std::vector<int> *Bc_mu_charge;
+
+	  // Muon IDs and other properties
+	  std::vector<float> *muonPositiveChi2, *muonNegativeChi2;
+	  std::vector<int> *muonPositiveNumHits, *muonPositiveNumPixelHits;
+	  std::vector<int> *muonNegativeNumHits, *muonNegativeNumPixelHits;
+	  std::vector<float> *muonPositiveDxy, *muonPositiveDz;
+	  std::vector<float> *muonNegativeDxy, *muonNegativeDz;
+	  std::vector<float> *muonDCA;
+
+	  std::vector<bool> *isMuon1Soft, *isMuon2Soft;
+	  std::vector<bool> *isMuon1Tight, *isMuon2Tight;
+	  std::vector<bool> *isMuon1PF, *isMuon2PF;
+	  std::vector<bool> *isMuon1Loose, isMuon2Loose;
+
+
 
 
 
