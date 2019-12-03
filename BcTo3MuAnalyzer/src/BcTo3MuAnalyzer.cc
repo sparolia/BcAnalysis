@@ -495,13 +495,13 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		 isMuon1Soft->push_back(patMuon1->isSoftMuon(bestVertex));
 		 isMuon1Tight->push_back(patMuon1->isTightMuon(bestVertex));
-		 isMuon1PF->push_back(patMuon1->isPFMuon(bestVertex));
-		 isMuon1Loose->push_back(patMuon1->isLooseMuon(bestVertex));
+		 isMuon1PF->push_back(patMuon1->isPFMuon());
+		 isMuon1Loose->push_back(muon::isLooseMuon(*patMuon1));
 
 		 isMuon2Soft->push_back(patMuon2->isSoftMuon(bestVertex));
 		 isMuon2Tight->push_back(patMuon2->isTightMuon(bestVertex));
-		 isMuon2PF->push_back(patMuon2->isPFMuon(bestVertex));
-		 isMuon2Loose->push_back(patMuon2->isLooseMuon(bestVertex));
+		 isMuon2PF->push_back(patMuon2->isPFMuon());
+		 isMuon2Loose->push_back(muon::isLooseMuon(*patMuon1));
 
 		 muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
 		 muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
@@ -512,7 +512,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 		 
 		 muonNegativeChi2->push_back(globalTrackMuNegative->normalizedChi2());
 		 muonNegativeNumHits->push_back(globalTrackMuNegative->numberOfValidHits());
-		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->->hitPattern().numberOfValidPixelHits());
+		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->hitPattern().numberOfValidPixelHits());
 		 muonNegativeDxy->push_back(globalTrackMuNegative->dxy(bestVertex.position()));
 		 muonNegativeDz->push_back(globalTrackMuNegative->dz(bestVertex.position()));
 		 muonDCA->push_back(dca);
