@@ -106,7 +106,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 	  std::vector<bool> *isMuon1Soft, *isMuon2Soft;
 	  std::vector<bool> *isMuon1Tight, *isMuon2Tight;
 	  std::vector<bool> *isMuon1PF, *isMuon2PF;
-	  std::vector<bool> *isMuon1Loose, isMuon2Loose;
+	  std::vector<bool> *isMuon1Loose, *isMuon2Loose;
 
 
 
