@@ -58,6 +58,7 @@
 
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "CommonTools/UtilAlgos/interface/TFileService.h"
+#include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //
@@ -567,11 +568,8 @@ Bc_decayVertexY->clear();
 Bc_decayVertexYError->clear();
 Bc_decayVertexZ->clear();
 Bc_decayVertexZError->clear();
-Bc_decayVertexYX->clear();
 Bc_decayVertexYXError->clear();
-Bc_decayVertexZX->clear();
 Bc_decayVertexZXError->clear();
-Bc_decayVertexZY->clear();
 Bc_decayVertexZYError->clear();
 
 nPrimaryVertices=0;
