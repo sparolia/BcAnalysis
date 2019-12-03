@@ -48,6 +48,7 @@
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
+#include "DataFormats/MuonReco/interface/Muon.h"
 
 
 // user include files: For kinematic fit
