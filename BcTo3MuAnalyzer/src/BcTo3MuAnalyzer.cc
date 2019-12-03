@@ -42,6 +42,7 @@
 
 #include "DataFormats/PatCandidates/interface/CompositeCandidate.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/Muon.h"
 #include "DataFormats/Candidate/interface/Candidate.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
 #include "DataFormats/VertexReco/interface/VertexFwd.h"
@@ -503,14 +504,14 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		 muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
 		 muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
-		 muonPositiveNumPixelHits->push_back(globalTrackMuPositive->numberOfValidPixelHits());
+		 muonPositiveNumPixelHits->push_back(globalTrackMuPositive->hitPattern().numberOfValidPixelHits());
 		 muonPositiveDxy->push_back(globalTrackMuPositive->dxy(bestVertex.position()));
 		 muonPositiveDz->push_back(globalTrackMuPositive->dz(bestVertex.position()));
 
 		 
 		 muonNegativeChi2->push_back(globalTrackMuNegative->normalizedChi2());
 		 muonNegativeNumHits->push_back(globalTrackMuNegative->numberOfValidHits());
-		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->numberOfValidPixelHits());
+		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->->hitPattern().numberOfValidPixelHits());
 		 muonNegativeDxy->push_back(globalTrackMuNegative->dxy(bestVertex.position()));
 		 muonNegativeDz->push_back(globalTrackMuNegative->dz(bestVertex.position()));
 		 muonDCA->push_back(dca);
