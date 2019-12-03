@@ -56,7 +56,8 @@
 
 
 
-
+#include "FWCore/Common/interface/TriggerNames.h"
+#include "CommonTools/UtilAlgos/interface/TFileService.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //
@@ -90,7 +91,7 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   triggerMatchDimuon25(0), triggerMatchDimuon20(0), triggerMatchJpsiTk(0),
 
   // Primary vertex
-  primaryVertexChi2(0)
+  primaryVertexChi2(0),
   nPrimaryVertices(0),
   primaryVertexX(0), primaryVertexY(0), primaryVertexZ(0),
   primaryVertexXError(0), primaryVertexYError(0), primaryVertexZError(0),
@@ -501,14 +502,14 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 		 muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
 		 muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
-		 muonPositiveNumPixelHits->push_back(globalTrackMuPositive->bumberOfValidPixelHits());
+		 muonPositiveNumPixelHits->push_back(globalTrackMuPositive->numberOfValidPixelHits());
 		 muonPositiveDxy->push_back(globalTrackMuPositive->dxy(bestVertex.position()));
 		 muonPositiveDz->push_back(globalTrackMuPositive->dz(bestVertex.position()));
 
 		 
 		 muonNegativeChi2->push_back(globalTrackMuNegative->normalizedChi2());
 		 muonNegativeNumHits->push_back(globalTrackMuNegative->numberOfValidHits());
-		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->bumberOfValidPixelHits());
+		 muonNegativeNumPixelHits->push_back(globalTrackMuNegative->numberOfValidPixelHits());
 		 muonNegativeDxy->push_back(globalTrackMuNegative->dxy(bestVertex.position()));
 		 muonNegativeDz->push_back(globalTrackMuNegative->dz(bestVertex.position()));
 		 muonDCA->push_back(dca);
