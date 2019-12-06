@@ -526,6 +526,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    }
 if(nBc > 0)
 {
+  std::cout << "Debug message: Bc found!" << std::endl;
 	tree_->Fill();
 }
 nBc = 0;
