@@ -15,6 +15,7 @@
 //         Created:  Wed, 23 Oct 2019 01:37:59 GMT
 //
 //
+#define DEBUG_MODE 1
 
 // All includes test
 #include "RecoVertex/KinematicFitPrimitives/interface/TransientTrackKinematicParticle.h"
@@ -49,6 +50,7 @@
 #include "DataFormats/TrackReco/interface/Track.h"
 #include "DataFormats/RecoCandidate/interface/RecoChargedCandidate.h"
 #include "DataFormats/MuonReco/interface/Muon.h"
+#include "DataFormats/Common/interface/TriggerResults.h"
 
 
 // user include files: For kinematic fit
@@ -211,6 +213,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    
    primaryVertexChi2 = ChiSquaredProbability((double)(bestVertex.chi2()),(double)(bestVertex.ndof()));
    nPrimaryVertices = thePrimaryVerticesHandle->size();
+   int nMuonsTotal = thePATMuonHandle->size(); 
 
    lumiblock = iEvent.id().luminosityBlock();
    run = iEvent.id().run();
@@ -223,17 +226,23 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
    // products of the Bc
    /////////////////////////////////////////////////////
 
-   for(View<pat::Muon>::const_iterator patMuon1 = thePATMuonHandle->begin(); patMuon1 != thePATMuonHandle->end()-1; ++patMuon1)
+   for(View<pat::Muon>::const_iterator patMuon1 = thePATMuonHandle->begin(); patMuon1 != thePATMuonHandle->end(); ++patMuon1)
    {
 
-     for(View<pat::Muon>::const_iterator patMuon2 = patMuon1+1; patMuon2 != thePATMuonHandle->end(); ++patMuon2)
+     for(View<pat::Muon>::const_iterator patMuon2 = thePATMuonHandle->begin(); patMuon2 != thePATMuonHandle->end(); ++patMuon2)
      {
        // Skipping the pairing of muons with itself
        if(patMuon1 == patMuon2) continue;
+#if DEBUG_MODE
+       std::cout << "1: Muon1 is different to muon 2" << std::endl;
+#endif
 
        // Pairing only opposite signed muons
        //TODO: Save also same sign pairs to study
        if((patMuon1->charge())*(patMuon2->charge()) != -1) continue;
+#if DEBUG_MODE
+       std::cout << "2: Muon1 and muon2 have opposite charge" << std::endl;
+#endif
        
        // Getting tracks from the muons
        reco::TrackRef globalTrackMuPositive;
@@ -252,28 +261,50 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
        // Check for the track reference
        if(globalTrackMuPositive.isNull() || globalTrackMuNegative.isNull()) continue;
+#if DEBUG_MODE
+       std::cout << "3: Muon1 and muon2 global tracks are not null" << std::endl;
+#endif
 
+       /*G: Preserve low pt muons
        if(globalTrackMuPositive->pt()<4.0) continue;
        if(globalTrackMuNegative->pt()<4.0) continue;
+       */
+#if DEBUG_MODE
+       std::cout << "4: Muon1 and muon2 pT greater than 4.0 GeV" << std::endl;
+#endif
 
        if(!(globalTrackMuPositive->quality(reco::TrackBase::highPurity))) continue;
        if(!(globalTrackMuNegative->quality(reco::TrackBase::highPurity))) continue;
+#if DEBUG_MODE
+       std::cout << "5: Muon1 and muon2 tracks are high quality" << std::endl;
+#endif
     
     
        reco::TransientTrack transientTrackMuPositive((*theBuilder).build(globalTrackMuPositive));
        reco::TransientTrack transientTrackMuNegative((*theBuilder).build(globalTrackMuNegative));
 
+
        if(!(transientTrackMuPositive.impactPointTSCP().isValid())) continue;
        if(!(transientTrackMuNegative.impactPointTSCP().isValid())) continue;
 
+#if DEBUG_MODE
+       std::cout << "6: Muon1 and muon2 transient tracks impactPointTSCP are valid" << std::endl;
+       std::cout << "nMuosTotal: " << nMuonsTotal << std::endl;
+#endif
 
-       // Trajectory state to calculate DCA for the two muons
        FreeTrajectoryState trajectoryStateMuPositive = transientTrackMuPositive.impactPointTSCP().theState();
        FreeTrajectoryState trajectoryStateMuNegative = transientTrackMuNegative.impactPointTSCP().theState();
 
+
+       // Trajectory state to calculate DCA for the two muons
+
        ClosestApproachInRPhi closestApproachMuons;
        closestApproachMuons.calculate(trajectoryStateMuPositive, trajectoryStateMuNegative);
+
        if(!closestApproachMuons.status()) continue;
+#if DEBUG_MODE
+       std::cout << "7: Muon1 and muon2 closest approach status 1" << std::endl;
+#endif
        float dca = fabs(closestApproachMuons.distance());
 
        // The (PDG) mass of the muon and the insignificant mass sigma
@@ -314,22 +345,34 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          std::cout<<" Exeption cought... continuing 2 "<< std::endl;
          continue;
        }
+#if DEBUG_MODE
+       std::cout << "7.5: jpsi vertex fit is valid" << std::endl;
+#endif
        if(!(jpsiVertexFitTree->isValid())) continue;
        jpsiVertexFitTree->movePointerToTheTop();
 
        RefCountedKinematicParticle jpsiVertexFit = jpsiVertexFitTree->currentParticle();
        RefCountedKinematicVertex jpsiVertexFit_vertex = jpsiVertexFitTree->currentDecayVertex();
 
+#if DEBUG_MODE
+       std::cout << "8: jpsi vertex chi2 cuts" << std::endl;
+#endif
        if(jpsiVertexFit_vertex->chiSquared() <0.0) continue;
        if(jpsiVertexFit_vertex->chiSquared() >50.0) continue;
 
        if(jpsiVertexFit->currentState().mass()<2.9) continue;
        if(jpsiVertexFit->currentState().mass()>3.3) continue;
 
+#if DEBUG_MODE
+       std::cout << "9: Inside mass window" << std::endl;
+#endif
 
        double jpsiProb_tmp = TMath::Prob(jpsiVertexFit_vertex->chiSquared(),(int)jpsiVertexFit_vertex->degreesOfFreedom());
 
        if(jpsiProb_tmp <0.01) continue;
+#if DEBUG_MODE
+       std::cout << "10: Good jpsi vertex probability" << std::endl;
+#endif
 
        // Now include the extra muon
        for(View<pat::Muon>::const_iterator patMuon3 = thePATMuonHandle->begin(); patMuon3 != thePATMuonHandle->end(); ++patMuon3)
@@ -466,30 +509,32 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
          Bc_decayVertexZXError->push_back(bcDecayVertex->error().czx());
          Bc_decayVertexZYError->push_back(bcDecayVertex->error().czy());
 
+#if DEBUG_MODE
+       std::cout << "Before trigger matching!" << std::endl;
+#endif
          // Check for trigger matching
-         const pat::TriggerObjectStandAloneCollection muHLTMatches1_t1 = patMuon1->triggerObjectMatchesByFilter("hltDisplacedmumuFilterDimuon25Jpsis");
-         const pat::TriggerObjectStandAloneCollection muHLTMatches2_t1 = patMuon2->triggerObjectMatchesByFilter("hltDisplacedmumuFilterDimuon25Jpsis");
-
-
-         const pat::TriggerObjectStandAloneCollection muHLTMatches1_t2 = patMuon1->triggerObjectMatchesByFilter("hltJpsiTkVertexFilter");
-         const pat::TriggerObjectStandAloneCollection muHLTMatches2_t2 = patMuon2->triggerObjectMatchesByFilter("hltJpsiTkVertexFilter");
-
-
-         const pat::TriggerObjectStandAloneCollection muHLTMatches1_t3 = patMuon1->triggerObjectMatchesByFilter("hltDisplacedmumuFilterDimuon20JpsiBarrelnoCow");
-         const pat::TriggerObjectStandAloneCollection muHLTMatches2_t3 = patMuon2->triggerObjectMatchesByFilter("hltDisplacedmumuFilterDimuon20JpsiBarrelnoCow");
-
 
          int triggerMatchDimuon25_tmp = 0;
          int triggerMatchJpsiTk_tmp = 0;
          int triggerMatchDimuon20_tmp = 0;
+#if DEBUG_MODE
+       std::cout << "Done the trigger definition!" << std::endl;
+#endif
 
-         if(muHLTMatches1_t1.size() > 0 && muHLTMatches2_t1.size() > 0) triggerMatchDimuon25_tmp = 1;
-         if(muHLTMatches1_t2.size() > 0 && muHLTMatches2_t2.size() > 0) triggerMatchJpsiTk_tmp = 1;
-         if(muHLTMatches1_t3.size() > 0 && muHLTMatches2_t3.size() > 0) triggerMatchDimuon20_tmp = 1;
-		 
+         const pat::Muon* muon1 = &(*patMuon1);
+         const pat::Muon* muon2 = &(*patMuon2);
+       
+       
+         if(muon1->triggerObjectMatchByPath("HLT_Dimuon25_Jpsi_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon25_Jpsi_v*")!=nullptr) triggerMatchDimuon25_tmp = 1;
+         if(muon1->triggerObjectMatchByPath("HLT_DoubleMu4_JpsiTrk_Displaced_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_DoubleMu4_JpsiTrk_Displaced_v*")!=nullptr) triggerMatchJpsiTk_tmp= 1;
+         if(muon1->triggerObjectMatchByPath("HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*")!=nullptr) triggerMatchDimuon20_tmp = 1;
+       
 		 triggerMatchDimuon25->push_back(triggerMatchDimuon25_tmp);
 		 triggerMatchJpsiTk->push_back(triggerMatchJpsiTk_tmp);
 		 triggerMatchDimuon20->push_back(triggerMatchDimuon20_tmp);
+#if DEBUG_MODE
+       std::cout << "After trigger matching!" << std::endl;
+#endif
 
 		 // Muon IDs and other properties
 
@@ -524,6 +569,10 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
        }
      }
    }
+#if DEBUG_MODE
+       std::cout << "Tree loops done!" << std::endl;
+#endif
+   
 if(nBc > 0)
 {
   std::cout << "Debug message: Bc found!" << std::endl;
@@ -616,6 +665,9 @@ isMuon2Tight->clear();
 isMuon2PF->clear();
 isMuon2Loose->clear();
 
+#if DEBUG_MODE
+       std::cout << "End" << std::endl;
+#endif
 
 
 }
