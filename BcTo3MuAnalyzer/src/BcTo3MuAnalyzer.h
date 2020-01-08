@@ -90,51 +90,22 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     float primaryVertexXError, primaryVertexYError, primaryVertexZError;
     float primaryVertexXYError, primaryVertexXZError, primaryVertexYZError;
 
-    // Bc particle
-    unsigned int nBc;
-    std::vector<float> *Bc_chi2;
-    std::vector<float> *Bc_vertexProbability;
 
-    std::vector<float> *Bc_decayVertexX, *Bc_decayVertexY, *Bc_decayVertexZ;
-    std::vector<double> *Bc_decayVertexXError, *Bc_decayVertexYError, *Bc_decayVertexZError;
-    std::vector<double> *Bc_decayVertexYXError, *Bc_decayVertexZXError, *Bc_decayVertexZYError;
-    
-    std::vector<float> *Bc_mass, *Bc_px, *Bc_py, *Bc_pz;
-    std::vector<int> *Bc_charge;
+    // J/Psi particles 
+    std::vector<float> *jpsi_chi2;
+    std::vector<float> *jpsi_vertexProbability;
 
-    // J/Psi particles coming from Bc
-    std::vector<float> *Bc_jpsi_chi2;
-    std::vector<float> *Bc_jpsi_vertexProbability;
-
-    std::vector<float> *Bc_jpsi_mass, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
+    std::vector<float> *jpsi_mass, *jpsi_px, *jpsi_py, *jpsi_pz;
 
     // Muons coming from J/Psi
-    std::vector<float> *Bc_jpsi_mu1_pt, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
-    std::vector<float> *Bc_jpsi_mu2_pt, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
-    std::vector<int> *Bc_jpsi_mu1_charge, *Bc_jpsi_mu2_charge;
-
-    // Muon coming from Bc
-    unsigned int nMuons;
-    std::vector<float> *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
-    std::vector<float> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
-    std::vector<int> *Bc_mu_charge;
-
-	  // Muon IDs and other properties
-	  std::vector<float> *muonPositiveChi2, *muonNegativeChi2;
-	  std::vector<int> *muonPositiveNumHits, *muonPositiveNumPixelHits;
-	  std::vector<int> *muonNegativeNumHits, *muonNegativeNumPixelHits;
-	  std::vector<float> *muonPositiveDxy, *muonPositiveDz;
-	  std::vector<float> *muonNegativeDxy, *muonNegativeDz;
-	  std::vector<float> *muonDCA;
+    std::vector<float> *jpsi_mu1_pt, *jpsi_mu1_px, *jpsi_mu1_py, *jpsi_mu1_pz;
+    std::vector<float> *jpsi_mu2_pt, *jpsi_mu2_px, *jpsi_mu2_py, *jpsi_mu2_pz;
+    std::vector<int> *jpsi_mu1_charge, *jpsi_mu2_charge;
 
 	  std::vector<bool> *isMuon1Soft, *isMuon2Soft;
 	  std::vector<bool> *isMuon1Tight, *isMuon2Tight;
 	  std::vector<bool> *isMuon1PF, *isMuon2PF;
 	  std::vector<bool> *isMuon1Loose, *isMuon2Loose;
-
-    //std::vector<float> *deltaRMuonPositive;
-    //std::vector<float> *deltaRMuonNegative;
-    //std::vector<float> *deltaRUnpairedMuon;
 
     TH1F *hEventCounter;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
