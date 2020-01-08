@@ -38,6 +38,7 @@
 #include "TTree.h"
 #include "TLorentzVector.h"
 #include "TVector3.h"
+#include "TH1.h"
 //
 // class declaration
 //
@@ -48,6 +49,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     ~BcTo3MuAnalyzer();
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
+    double GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_vtx);
+    int isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3);
 
 
   private:
@@ -77,7 +80,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 	  std::vector<int>  *triggerMatchDimuon0, *triggerMatchDimuon20, *triggerMatchDimuon25;
 	  std::vector<int>  *triggerMatchJpsi, *triggerMatchJpsiTk, *triggerMatchJpsiTkTk;
 
-    std::vector<int> *truthMatchMuPositive, *truthMatchMuNegative, *truthMatchUnpairedMu;
+    std::vector<int> *truthMatchMuPositiveSim, *truthMatchMuNegativeSim, *truthMatchUnpairedMuSim;
+    std::vector<int> *truthMatchMuPositive, *truthMatchMuNegative;
      
     // Primary vertex
 	  float primaryVertexChi2;
@@ -128,10 +132,11 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 	  std::vector<bool> *isMuon1PF, *isMuon2PF;
 	  std::vector<bool> *isMuon1Loose, *isMuon2Loose;
 
+    //std::vector<float> *deltaRMuonPositive;
+    //std::vector<float> *deltaRMuonNegative;
+    //std::vector<float> *deltaRUnpairedMuon;
 
-
-
-
+    TH1F *hEventCounter;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;

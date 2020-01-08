@@ -100,7 +100,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   triggerMatchJpsi(0), triggerMatchJpsiTk(0), triggerMatchJpsiTkTk(0),
 
   //Sort of truth match using sim information from pat::muons 
-  truthMatchMuPositive(0), truthMatchMuNegative(0), truthMatchUnpairedMu(0),
+  truthMatchMuPositiveSim(0), truthMatchMuNegativeSim(0), truthMatchUnpairedMuSim(0),
+  truthMatchMuPositive(0), truthMatchMuNegative(0),
   // Primary vertex
   primaryVertexChi2(0),
   nPrimaryVertices(0),
@@ -145,16 +146,16 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   isMuon1Soft(0), isMuon2Soft(0),
   isMuon1Tight(0), isMuon2Tight(0),
   isMuon1PF(0), isMuon2PF(0),
-  isMuon1Loose(0), isMuon2Loose(0)
+  isMuon1Loose(0), isMuon2Loose(0),
 
-  
+  hEventCounter(0)
   
 
   
 {
    //now do what ever initialization is needed
-
 }
+  
 
 
 BcTo3MuAnalyzer::~BcTo3MuAnalyzer()
@@ -213,14 +214,102 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_jpsi_vtx.SetXYZ(0.,0.,0.);
   gen_b_ct = -99;
   
-  //std::cout << packedGenParticlesHandle.isValid() << std::endl;
-  std::cout << genPUProtonsHandle.isValid() << std::endl;
+  
+  //std::cout << "failedToGet: " << prunedGenParticlesHandle.failedToGet() << std::endl;
+  std::cout << "isValid: " << prunedGenParticlesHandle.isValid() << std::endl;
   if( isMC_ && packedGenParticlesHandle.isValid()){
-    int nParticleFound = 0;
-    for(auto genPacked = packedGenParticlesHandle->begin(); genPacked != packedGenParticlesHandle->end(); ++genPacked)
+    for(auto genPruned = prunedGenParticlesHandle->begin(); genPruned != prunedGenParticlesHandle->end(); ++genPruned)
     {
+      if(genPruned->pdgId() == 541) 
+      {
+        hEventCounter->Fill(1.);
+        break;
+      }
+    }
+  }
 
-      if (abs(genPacked->pdgId()) == 433) std::cout << "PDG ID:" << abs(genPacked->pdgId()) << std::endl;
+  //std::cout << genPUProtonsHandle.isValid() << std::endl;
+  if( isMC_ && packedGenParticlesHandle.isValid()){
+    int nParticlesFound = 0;
+    for(auto genPruned = prunedGenParticlesHandle->begin(); genPruned != prunedGenParticlesHandle->end(); ++genPruned)
+    {
+      nParticlesFound = 0;
+      if(genPruned->pdgId() == 541) 
+      {
+        for(size_t i = 0; i < genPruned->numberOfDaughters(); ++i)
+        {
+          const reco::Candidate *iDaughter = genPruned->daughter(i);
+          if(iDaughter->pdgId() == 541)
+          {
+            nParticlesFound++;
+            gen_b_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
+            gen_b_vtx.SetXYZ(iDaughter->vx(), iDaughter->vy(), iDaughter->vz());
+          }
+          if(iDaughter->pdgId() == 443) 
+          {
+            nParticlesFound++;
+            gen_jpsi_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
+            gen_jpsi_vtx.SetXYZ(iDaughter->vx(), iDaughter->vy(), iDaughter->vz());
+            gen_b_ct = GetLifetime(gen_b_p4, gen_b_vtx, gen_jpsi_vtx);
+
+            for(size_t j = 0; j< iDaughter->numberOfDaughters(); ++j)
+            {
+              const reco::Candidate *jGrandDaughter = iDaughter->daughter(j);
+              if(jGrandDaughter->pdgId() == -13)
+              {
+                nParticlesFound++;
+                gen_muonPositive_p4.SetPtEtaPhiM(jGrandDaughter->pt(),jGrandDaughter->eta(), jGrandDaughter->phi(), jGrandDaughter->mass());
+              }
+              if(jGrandDaughter->pdgId() == 13)
+              {
+                nParticlesFound++;
+                gen_muonNegative_p4.SetPtEtaPhiM(jGrandDaughter->pt(),jGrandDaughter->eta(), jGrandDaughter->phi(), jGrandDaughter->mass());
+              }
+            }
+          }
+          else
+          {
+            if(abs(iDaughter->pdgId()) == 13) 
+            {
+              nParticlesFound++;
+              gen_unpairedMuon_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
+
+            }
+            else
+            {
+              if(abs(iDaughter->pdgId()) == 15)
+              {
+                std::cout << iDaughter->numberOfDaughters() << std::endl;
+                for(size_t k = 0; k<iDaughter->numberOfDaughters(); ++k)
+                { 
+                  const reco::Candidate *kGrandDaughter = iDaughter->daughter(k);
+                  std::cout << kGrandDaughter->pdgId() << std::endl;
+                  if(abs(kGrandDaughter->pdgId()) == 13)
+                  {
+                    nParticlesFound++;
+                    gen_unpairedMuon_p4.SetPtEtaPhiM(kGrandDaughter->pt(),kGrandDaughter->eta(), kGrandDaughter->phi(), kGrandDaughter->mass());
+                  }
+                }
+              }
+            }
+          }
+        }
+        // TODO: Find a intelligen way to avoid the following if:
+        if(nParticlesFound == 1) continue;
+        std::cout << "nParticlesFound = " << nParticlesFound << std::endl;
+        if (nParticlesFound != 4)
+        {
+          gen_b_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+          gen_jpsi_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+          gen_muonPositive_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+          gen_muonNegative_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+          gen_unpairedMuon_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+          gen_b_vtx.SetXYZ(0.,0.,0.);
+          gen_jpsi_vtx.SetXYZ(0.,0.,0.);
+          gen_b_ct = -99;
+
+        }
+      }
     }
   }
   
@@ -302,6 +391,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(globalTrackMuPositive->pt()<4.0) continue;
       if(globalTrackMuNegative->pt()<4.0) continue;
       */
+      std::cout << "Test 1" << std::endl;
 
       if(!(globalTrackMuPositive->quality(reco::TrackBase::highPurity))) continue;
       if(!(globalTrackMuNegative->quality(reco::TrackBase::highPurity))) continue;
@@ -354,6 +444,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       }
 
       KinematicParticleVertexFitter vertexFitter;
+      std::cout << "Test 2" << std::endl;
 
       RefCountedKinematicTree jpsiVertexFitTree;
       try
@@ -387,34 +478,36 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       // Now include the extra muon
       for(View<pat::Muon>::const_iterator patMuon3 = thePATMuonHandle->begin(); patMuon3 != thePATMuonHandle->end(); ++patMuon3)
       {
-        if(patMuon3->simMotherPdgId() != 541) continue;
+        
+        std::cout << "Test 3" << std::endl;
+        //if(patMuon3->simMotherPdgId() != 541) continue;
 
         if(patMuon3->charge()==0) continue;
         if(patMuon1==patMuon3) continue;
         if(patMuon2==patMuon3) continue;
         
-        reco::TrackRef globalTrackMuExtra;
-        globalTrackMuExtra = patMuon3->track();
+        reco::TrackRef globalTrackUnpairedMu;
+        globalTrackUnpairedMu = patMuon3->track();
 
-        if(globalTrackMuExtra.isNull()) continue;
+        if(globalTrackUnpairedMu.isNull()) continue;
         //if(globalTrackMuExtra->pt()<1.0) continue;
 
-        if(!(globalTrackMuExtra->quality(reco::TrackBase::highPurity))) continue;
+        if(!(globalTrackUnpairedMu->quality(reco::TrackBase::highPurity))) continue;
         
 
-        reco::TransientTrack transientTrackMuExtra((*theBuilder).build(globalTrackMuExtra));
+        reco::TransientTrack transientTrackUnpairedMu((*theBuilder).build(globalTrackUnpairedMu));
         //FreeTrajectoryState trajectoryStateMuExtra = transientTrackMuExtra.impactPointTSCP().theState();
 
-        if(!transientTrackMuExtra.impactPointTSCP().isValid()) continue;
+        if(!transientTrackUnpairedMu.impactPointTSCP().isValid()) continue;
 
         // JPsi + muon invariant mass (before kinematic vertex fit)
 
-        TLorentzVector muonExtra4V, jpsi4V;
-        muonExtra4V.SetXYZM(patMuon3->px(), patMuon3->py(), patMuon3->pz(), muonMass);
+        TLorentzVector unpairedMuon4V, jpsi4V;
+        unpairedMuon4V.SetXYZM(patMuon3->px(), patMuon3->py(), patMuon3->pz(), muonMass);
         auto jpsiGlobalMomentum = jpsiVertexFit->currentState().globalMomentum();
         jpsi4V.SetXYZM(jpsiGlobalMomentum.x(), jpsiGlobalMomentum.y(), jpsiGlobalMomentum.z(), jpsiVertexFit->currentState().mass());
 
-        if((muonExtra4V + jpsi4V).M()<2.2 || (muonExtra4V + jpsi4V).M()>6.8) continue;
+        if((unpairedMuon4V + jpsi4V).M()<2.2 || (unpairedMuon4V + jpsi4V).M()>6.8) continue;
         
 
         // Now we do the kinematic fit. Constaining the JPsi mass applied to the final Bplos fit.
@@ -422,7 +515,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         std::vector<RefCountedKinematicParticle> vectorFitParticles;
         vectorFitParticles.push_back(particleFactory.particle(transientTrackMuPositive, muonMass, chi,ndf, muonMassSigma));
         vectorFitParticles.push_back(particleFactory.particle(transientTrackMuNegative, muonMass, chi,ndf, muonMassSigma));
-        vectorFitParticles.push_back(particleFactory.particle(transientTrackMuExtra, muonMass, chi,ndf, muonMassSigma));
+        vectorFitParticles.push_back(particleFactory.particle(transientTrackUnpairedMu, muonMass, chi,ndf, muonMassSigma));
         
         MultiTrackKinematicConstraint *jpsiConstraint = new TwoTrackMassKinematicConstraint(jpsiMass);
         KinematicConstrainedVertexFitter constrainedVertexFitter;
@@ -456,7 +549,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         RefCountedKinematicParticle candidateMuNegative = vertexFitTree->currentParticle();
 
         vertexFitTree->movePointerToTheNextChild();
-        RefCountedKinematicParticle candidateMuExtra = vertexFitTree->currentParticle();
+        RefCountedKinematicParticle candidateUnpairedMu = vertexFitTree->currentParticle();
 
         KinematicParameters kinematicParamMuPositive = candidateMuPositive->currentState().kinematicParameters();
         KinematicParameters kinematicParamMuNegative = candidateMuNegative->currentState().kinematicParameters();
@@ -469,7 +562,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             candidateMuNegative->currentState().globalMomentum().y(),
             candidateMuNegative->currentState().globalMomentum().z());
 
-        KinematicParameters kinematicParamMuExtra = candidateMuExtra->currentState().kinematicParameters();
+        KinematicParameters kinematicParamUnpairedMu = candidateUnpairedMu->currentState().kinematicParameters();
 
         // Filling candidates variables now.
           
@@ -482,10 +575,10 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         // Filling childen variables
         // First for the muon coming directly from the Bc
 
-        Bc_mu_px->push_back(kinematicParamMuExtra.momentum().x());
-        Bc_mu_py->push_back(kinematicParamMuExtra.momentum().y());
-        Bc_mu_pz->push_back(kinematicParamMuExtra.momentum().z());
-        Bc_mu_charge->push_back(candidateMuExtra->currentState().particleCharge());
+        Bc_mu_px->push_back(kinematicParamUnpairedMu.momentum().x());
+        Bc_mu_py->push_back(kinematicParamUnpairedMu.momentum().y());
+        Bc_mu_pz->push_back(kinematicParamUnpairedMu.momentum().z());
+        Bc_mu_charge->push_back(candidateUnpairedMu->currentState().particleCharge());
         
         Bc_mu_px_noFit->push_back(patMuon3->px());
         Bc_mu_py_noFit->push_back(patMuon3->py());
@@ -557,20 +650,32 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         // Sort of truth matching using sim information form pat::muons
 
+        int truthMatchMuonPositiveSim = 0;
+        int truthMatchMuonNegativeSim = 0;
+        int truthMatchUnpairedMuonSim = 0;
+        
+        if (patMuon1->simMotherPdgId() == 443) truthMatchMuonPositiveSim =1; 
+        if (patMuon2->simMotherPdgId() == 443) truthMatchMuonNegativeSim =1;
+        if (patMuon3->simMotherPdgId() == 541) truthMatchUnpairedMuonSim =1;
+
+        
+        truthMatchMuPositiveSim->push_back(truthMatchMuonPositiveSim);
+        truthMatchMuNegativeSim->push_back(truthMatchMuonNegativeSim);
+        truthMatchUnpairedMuSim->push_back(truthMatchUnpairedMuonSim);
+
+        // Sort of truth matching using generation information from prunedGenParticles agains the muons after decay reconstruction
+        TVector3 reco_muonPositive_p3, reco_muonNegative_p3;
+        reco_muonPositive_p3.SetXYZ(kinematicParamMuPositive.momentum().x(),kinematicParamMuPositive.momentum().y(),kinematicParamMuPositive.momentum().z());
+        reco_muonNegative_p3.SetXYZ(kinematicParamMuPositive.momentum().x(),kinematicParamMuPositive.momentum().y(),kinematicParamMuPositive.momentum().z());
+
         int truthMatchMuonPositive = 0;
         int truthMatchMuonNegative = 0;
-        int truthMatchUnpairedMuon = 0;
-        
-        if (patMuon1->simMotherPdgId() == 443) truthMatchMuonPositive =1; 
-        if (patMuon2->simMotherPdgId() == 443) truthMatchMuonNegative =1;
-        if (patMuon3->simMotherPdgId() == 541) truthMatchUnpairedMuon =1;
 
+        if(isTruthMatch(gen_muonPositive_p4, reco_muonPositive_p3)) truthMatchMuonPositive = 1;
+        if(isTruthMatch(gen_muonNegative_p4, reco_muonNegative_p3)) truthMatchMuonPositive = 1;
         
         truthMatchMuPositive->push_back(truthMatchMuonPositive);
         truthMatchMuNegative->push_back(truthMatchMuonNegative);
-        truthMatchUnpairedMu->push_back(truthMatchUnpairedMuon);
-
-        
     		// Muon IDs and other properties
 
  	      isMuon1Soft->push_back(patMuon1->isSoftMuon(bestVertex));
@@ -669,9 +774,12 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     triggerMatchJpsiTkTk->push_back(-99);
     triggerMatchJpsi->push_back(-99);
 
+    truthMatchMuPositiveSim->push_back(-99);
+    truthMatchMuNegativeSim->push_back(-99);
+    truthMatchUnpairedMuSim->push_back(-99);
+
     truthMatchMuPositive->push_back(-99);
     truthMatchMuNegative->push_back(-99);
-    truthMatchUnpairedMu->push_back(-99);
 
      // Muon IDs and other properties
 
@@ -781,9 +889,12 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   triggerMatchJpsiTk->clear();
   triggerMatchJpsiTkTk->clear();
   
+  truthMatchMuPositiveSim->clear();
+  truthMatchMuNegativeSim->clear();
+  truthMatchUnpairedMuSim->clear();
+
   truthMatchMuPositive->clear();
   truthMatchMuNegative->clear();
-  truthMatchUnpairedMu->clear();
   
   isMuon1Soft->clear();
   isMuon1Tight->clear();
@@ -796,6 +907,26 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isMuon2Loose->clear();
 }
 
+double
+BcTo3MuAnalyzer::GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_vtx)
+{
+  TVector3 deltaVtx = jpsi_vtx - b_vtx;
+  TVector3 b_p3 = b_p4.Vect();
+  deltaVtx.SetZ(0.);
+  b_p3.SetZ(0.);
+  Double_t lxy = deltaVtx.Dot(b_p3)/b_p3.Mag();
+  return lxy*b_p4.M()/b_p3.Mag();
+}
+int
+BcTo3MuAnalyzer::isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3)
+{
+  TVector3 sim_p3 = sim_p4.Vect();
+  Double_t simRecoDeltaR = sim_p3.DeltaR(reco_p3);
+  int match = 0;
+  if(simRecoDeltaR < 0.3) match = 1;
+  return match;
+}
+
 // ------------ method called once each job just before starting event loop  ------------
 void
 BcTo3MuAnalyzer::beginJob()
@@ -803,6 +934,7 @@ BcTo3MuAnalyzer::beginJob()
 	std::cout << "Begin analyzer job" << std::endl;
 
 	edm::Service<TFileService> fs;
+  hEventCounter = fs->make<TH1F>("nGeneratedEvents", "nGeneratedEvents", 10, 0., 10.);
 	tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
 
 	tree_->Branch("nBC",&nBc,"nBc/i");
@@ -893,9 +1025,12 @@ BcTo3MuAnalyzer::beginJob()
 	tree_->Branch("triggerMatchDimuon20",&triggerMatchDimuon20);
 	tree_->Branch("triggerMatchDimuon25",&triggerMatchDimuon25);
 
+  tree_->Branch("truthMatchMuPositiveSim",&truthMatchMuPositiveSim);
+  tree_->Branch("truthMatchMuNegativeSim",&truthMatchMuNegativeSim);
+  tree_->Branch("truthMatchUnpairedMuSim",&truthMatchUnpairedMuSim);
+
   tree_->Branch("truthMatchMuPositive",&truthMatchMuPositive);
   tree_->Branch("truthMatchMuNegative",&truthMatchMuNegative);
-  tree_->Branch("truthMatchUnpairedMu",&truthMatchUnpairedMu);
   
 	tree_->Branch("isMuon1Soft",&isMuon1Soft);
 	tree_->Branch("isMuon1Tight",&isMuon1Tight);
