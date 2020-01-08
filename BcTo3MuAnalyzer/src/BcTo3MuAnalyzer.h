@@ -80,7 +80,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 	  std::vector<int>  *triggerMatchDimuon0, *triggerMatchDimuon20, *triggerMatchDimuon25;
 	  std::vector<int>  *triggerMatchJpsi, *triggerMatchJpsiTk, *triggerMatchJpsiTkTk;
 
-    std::vector<int> *truthMatchMuPositiveSim, *truthMatchMuNegativeSim, *truthMatchUnpairedMuSim;
+    std::vector<int> *truthMatchMuPositiveSim, *truthMatchMuNegativeSim;
     std::vector<int> *truthMatchMuPositive, *truthMatchMuNegative;
      
     // Primary vertex
@@ -95,12 +95,19 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<float> *jpsi_chi2;
     std::vector<float> *jpsi_vertexProbability;
 
-    std::vector<float> *jpsi_mass, *jpsi_px, *jpsi_py, *jpsi_pz;
+    std::vector<float> *jpsi_mass, *jpsi_pt, *jpsi_px, *jpsi_py, *jpsi_pz;
 
     // Muons coming from J/Psi
     std::vector<float> *jpsi_mu1_pt, *jpsi_mu1_px, *jpsi_mu1_py, *jpsi_mu1_pz;
     std::vector<float> *jpsi_mu2_pt, *jpsi_mu2_px, *jpsi_mu2_py, *jpsi_mu2_pz;
     std::vector<int> *jpsi_mu1_charge, *jpsi_mu2_charge;
+    // Muon IDs and other properties
+    std::vector<float> *muonPositiveChi2, *muonNegativeChi2;
+    std::vector<int> *muonPositiveNumHits, *muonPositiveNumPixelHits;
+    std::vector<int> *muonNegativeNumHits, *muonNegativeNumPixelHits;
+    std::vector<float> *muonPositiveDxy, *muonPositiveDz;
+    std::vector<float> *muonNegativeDxy, *muonNegativeDz;
+    std::vector<float> *muonDCA;
 
 	  std::vector<bool> *isMuon1Soft, *isMuon2Soft;
 	  std::vector<bool> *isMuon1Tight, *isMuon2Tight;

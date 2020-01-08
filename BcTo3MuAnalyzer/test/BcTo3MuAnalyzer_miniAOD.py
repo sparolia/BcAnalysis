@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu
-# dacayChannel= 'muon'
+#decayChannel= 'muon'
 decayChannel= 'tau'
 
 
@@ -23,7 +23,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 inputFilesList = []
@@ -33,7 +33,7 @@ if(decayChannel == 'muon'):
   outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
 elif(decayChannel == 'tau'):
   inputFilesList = files_jpsi_taunu
-  outputRootFileName = 'RootupleBcTo3Mu_tauChanel.root'
+  outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
