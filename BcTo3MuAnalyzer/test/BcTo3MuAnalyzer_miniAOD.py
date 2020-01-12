@@ -1,8 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu
-#decayChannel= 'muon'
-decayChannel= 'tau'
-
+isSigChannel = True
 
 process = cms.Process("Rootuple")
 
@@ -23,17 +21,20 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))  
 
 
 inputFilesList = []
 outputRootFileName = 'RootupleBcTo3Mu.root'
-if(decayChannel == 'muon'):
-  inputFilesList = files_jpsi_munu
-  outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
-elif(decayChannel == 'tau'):
+decayChannel = 'tau'
+if(isSigChannel):
+  decayChannel == 'tau'
   inputFilesList = files_jpsi_taunu
   outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
+else:
+  decayChannel == 'muon'
+  inputFilesList = files_jpsi_munu
+  outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
@@ -51,14 +52,47 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
       'HLT_DoubleMu4_3_Jpsi_v*',
       'HLT_DoubleMu4_JpsiTrkTrk_Displaced_v*',
       'HLT_DoubleMu4_JpsiTrk_Displaced_v*',
-      'HLT_DoubleMu4_Jpsi_Displaced_v*'
+      'HLT_DoubleMu4_Jpsi_Displaced_v*',
+      '*'
       ),
     hltResults = cms.InputTag('TriggerResults', '', 'HLT'),
     l1tResults = cms.InputTag(''),
     throw = cms.bool(False)
     )
 
-process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+#process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+if(isSigChannel):
+  process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
+      isSignalChannel = cms.bool(True),
+      dimuons = cms.InputTag('slimmedMuons'),
+      Trak = cms.InputTag('packedPFCandidates'),
+      prunedGenParticles = cms.InputTag('prunedGenParticles'),
+      packedGenParticles = cms.InputTag("packedGenParticles"),
+      genPUProtons = cms.InputTag("genPUProtons"),
+      primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
+      bslabel = cms.InputTag('offlineBeamSpot'),
+      TriggerResults = cms.InputTag('TriggerResults', '','HLT'),
+      OnlyBest = cms.bool(False),
+      isMC = cms.bool(True),
+      OnlyGen = cms.bool(False),
+      ) 
+else:
+  process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
+      isSignalChannel = cms.bool(False),
+      dimuons = cms.InputTag('slimmedMuons'),
+      Trak = cms.InputTag('packedPFCandidates'),
+      prunedGenParticles = cms.InputTag('prunedGenParticles'),
+      packedGenParticles = cms.InputTag("packedGenParticles"),
+      genPUProtons = cms.InputTag("genPUProtons"),
+      primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
+      bslabel = cms.InputTag('offlineBeamSpot'),
+      TriggerResults = cms.InputTag('TriggerResults', '','HLT'),
+      OnlyBest = cms.bool(False),
+      isMC = cms.bool(True),
+      OnlyGen = cms.bool(False),
+      ) 
+
+
 
 process.TFileService = cms.Service('TFileService',
     fileName = cms.string(outputRootFileName)
