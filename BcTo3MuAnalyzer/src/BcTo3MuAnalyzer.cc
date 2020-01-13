@@ -139,8 +139,7 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   hEventCounter(0),
   h2_b_ptVsEtaGenAll(0), h2_b_ptVsEtaGenCompleteDecay(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
   h2_jpsi_ptVsEtaGenAll(0), h2_jpsi_ptVsEtaGenCompleteDecay(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
-  h2_muonPositive_ptVsEtaGenAll(0), h2_muonPositive_ptVsEtaGenCompleteDecay(0), h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
-  h2_muonNegative_ptVsEtaGenAll(0), h2_muonNegative_ptVsEtaGenCompleteDecay(0), h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0(0)
+  h2_muon_ptVsEtaGenAll(0), h2_muon_ptVsEtaGenCompleteDecay(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0(0)
   
 
   
@@ -288,16 +287,16 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         {
           h2_b_ptVsEtaGenAll->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
           h2_jpsi_ptVsEtaGenAll->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-          h2_muonPositive_ptVsEtaGenAll->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-          h2_muonNegative_ptVsEtaGenAll->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          h2_muon_ptVsEtaGenAll->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+          h2_muon_ptVsEtaGenAll->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
         }
         if (nParticlesFound == 4)
         {
           isGenDecayPresent = true;
           h2_b_ptVsEtaGenCompleteDecay->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
           h2_jpsi_ptVsEtaGenCompleteDecay->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-          h2_muonPositive_ptVsEtaGenCompleteDecay->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-          h2_muonNegative_ptVsEtaGenCompleteDecay->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          h2_muon_ptVsEtaGenCompleteDecay->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+          h2_muon_ptVsEtaGenCompleteDecay->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
         }
         else
         {
@@ -534,22 +533,22 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       {
         h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
         h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-        h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-        h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
       }
       if(triggerMatchJpsiTk_tmp)
       {
         h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
         h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-        h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-        h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
       }
       if(triggerMatchJpsiTkTk_tmp)
       {
         h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
         h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-        h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-        h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+        h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
       }
       // Sort of truth matching using sim information form pat::muons
 
@@ -677,7 +676,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     muonDCA->push_back(-99);
   
   }
-  if(jpsiFound)
+  bool saveTree = false;
+  if(jpsiFound && saveTree)
   {
 	  tree_->Fill();
   }
@@ -780,30 +780,25 @@ BcTo3MuAnalyzer::beginJob()
 
 	edm::Service<TFileService> fs;
   hEventCounter = fs->make<TH1F>("nGeneratedEvents", "nGeneratedEvents", 10, 0., 10.);
-  h2_b_ptVsEtaGenAll = fs->make<TH2D>("h2_b_ptVsEtaGenAll", "h2_b_ptVsEtaGenAll", 30, 0., 15., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenAll = fs->make<TH2D>("h2_jpsi_ptVsEtaGenAll", "h2_jpsi_ptVsEtaGenAll", 30, 0., 15., 60, -3., 3.);
-  h2_muonPositive_ptVsEtaGenAll = fs->make<TH2D>("h2_muonPositive_ptVsEtaGenAll", "h2_muonPositive_ptVsEtaGenAll", 30, 0.,15., 60, -3., 3.);
-  h2_muonNegative_ptVsEtaGenAll = fs->make<TH2D>("h2_muonNegative_ptVsEtaGenAll", "h2_muonNegative_ptVsEtaGenAll", 30, 0.,15., 60, -3., 3.);
+  h2_b_ptVsEtaGenAll = fs->make<TH2D>("h2_b_ptVsEtaGenAll", "h2_b_ptVsEtaGenAll", 70, 0., 35., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenAll = fs->make<TH2D>("h2_jpsi_ptVsEtaGenAll", "h2_jpsi_ptVsEtaGenAll", 70, 0., 35., 60, -3., 3.);
+  h2_muon_ptVsEtaGenAll = fs->make<TH2D>("h2_muon_ptVsEtaGenAll", "h2_muon_ptVsEtaGenAll", 70, 0.,35., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay", "h2_b_ptVsEtaGenCompleteDecay", 30, 0.,15., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay", "h2_jpsi_ptVsEtaGenCompleteDecay", 30, 0.,15., 60, -3., 3.);
-  h2_muonPositive_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_muonPositive_ptVsEtaGenCompleteDecay", "h2_muonPositive_ptVsEtaGenCompleteDecay", 30, 0.,15., 60, -3., 3.);
-  h2_muonNegative_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_muonNegative_ptVsEtaGenCompleteDecay", "h2_muonNegative_ptVsEtaGenCompleteDecay", 30, 0.,15., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay", "h2_b_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay", "h2_jpsi_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay", "h2_muon_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", 30, 0.,15., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", 30, 0.,15., 60, -3., 3.);
-  h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk", 30, 0.,15., 60, -3., 3.);
-  h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk", 30, 0.,15., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 30, 0.,15., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 30, 0.,15., 60, -3., 3.);
-  h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 30, 0.,15., 60, -3., 3.);
-  h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 30, 0.,15., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", 30, 0.,15., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", 30, 0.,15., 60, -3., 3.);
-  h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0", 30, 0.,15., 60, -3., 3.);
-  h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0", 30, 0.,15., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
 
 	tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
 

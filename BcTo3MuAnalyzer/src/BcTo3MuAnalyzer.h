@@ -119,8 +119,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     TH1F *hEventCounter;
     TH2D *h2_b_ptVsEtaGenAll, *h2_b_ptVsEtaGenCompleteDecay, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0;
     TH2D *h2_jpsi_ptVsEtaGenAll, *h2_jpsi_ptVsEtaGenCompleteDecay, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0;
-    TH2D *h2_muonPositive_ptVsEtaGenAll, *h2_muonPositive_ptVsEtaGenCompleteDecay, *h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_muonPositive_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_muonPositive_ptVsEtaGenCompleteDecay_HLTDimuon0;
-    TH2D *h2_muonNegative_ptVsEtaGenAll, *h2_muonNegative_ptVsEtaGenCompleteDecay, *h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_muonNegative_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_muonNegative_ptVsEtaGenCompleteDecay_HLTDimuon0;
+    TH2D *h2_muon_ptVsEtaGenAll, *h2_muon_ptVsEtaGenCompleteDecay, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;
