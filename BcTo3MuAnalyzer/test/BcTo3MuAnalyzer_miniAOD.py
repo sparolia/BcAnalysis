@@ -21,7 +21,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(500))
 
 
 inputFilesList = []
@@ -60,38 +60,9 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
-#process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
-if(isSigChannel):
-  process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
-      isSignalChannel = cms.bool(True),
-      dimuons = cms.InputTag('slimmedMuons'),
-      Trak = cms.InputTag('packedPFCandidates'),
-      prunedGenParticles = cms.InputTag('prunedGenParticles'),
-      packedGenParticles = cms.InputTag("packedGenParticles"),
-      genPUProtons = cms.InputTag("genPUProtons"),
-      primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
-      bslabel = cms.InputTag('offlineBeamSpot'),
-      TriggerResults = cms.InputTag('TriggerResults', '','HLT'),
-      OnlyBest = cms.bool(False),
-      isMC = cms.bool(True),
-      OnlyGen = cms.bool(False),
-      ) 
-else:
-  process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
-      isSignalChannel = cms.bool(False),
-      dimuons = cms.InputTag('slimmedMuons'),
-      Trak = cms.InputTag('packedPFCandidates'),
-      prunedGenParticles = cms.InputTag('prunedGenParticles'),
-      packedGenParticles = cms.InputTag("packedGenParticles"),
-      genPUProtons = cms.InputTag("genPUProtons"),
-      primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
-      bslabel = cms.InputTag('offlineBeamSpot'),
-      TriggerResults = cms.InputTag('TriggerResults', '','HLT'),
-      OnlyBest = cms.bool(False),
-      isMC = cms.bool(True),
-      OnlyGen = cms.bool(False),
-      ) 
+process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
 
+process.rootuple.isSignalChannel = isSigChannel
 
 
 process.TFileService = cms.Service('TFileService',

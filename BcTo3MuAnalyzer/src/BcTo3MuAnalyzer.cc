@@ -206,25 +206,25 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_b_ct = -99;
   bool isGenDecayPresent = false;
   
-  
-  if( isMC_ && packedGenParticlesHandle.isValid()){
-    for(auto genPruned = prunedGenParticlesHandle->begin(); genPruned != prunedGenParticlesHandle->end(); ++genPruned)
-    {
-      if(genPruned->pdgId() == 541) 
-      {
-        hEventCounter->Fill(1.);
-        break;
-      }
-    }
-  }
+
+  ////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Getting the quadrivectors of the Bc, JPsi, muon positive, muon negative and the unpaired muons.
+  // These quadrivector will be used to perform truth match with the reconstructed objects.
+  //
+  // nParticlesFound counts the number of particle matching the decay chain we are studing. 
+  // For example (in the signal sample):
+  // - Bc (nParticlesFound = 1) is present. Bc decay product include J/Psi(nParticlesFound = 2) and tau (nParticlesFound = 3).
+  //
 
   if( isMC_ && packedGenParticlesHandle.isValid()){
     int nParticlesFound = 0;
+    bool isBcGenerated = false;
     for(auto genPruned = prunedGenParticlesHandle->begin(); genPruned != prunedGenParticlesHandle->end(); ++genPruned)
     {
       nParticlesFound = 0;
       if(genPruned->pdgId() == 541) 
       {
+        isBcGenerated = true;
         for(size_t i = 0; i < genPruned->numberOfDaughters(); ++i)
         {
           const reco::Candidate *iDaughter = genPruned->daughter(i);
@@ -312,9 +312,11 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
       }
     }
+    // The nEventCounter histogram counts the total number of events with at least one Bc generated.
+    if(isBcGenerated) hEventCounter->Fill(1.);
   }
   
-
+  std::cout << "Is signal channel: "<< isSignalChannel_ << std::endl;
   //////////////////////////////
   // Get the primary vertex
   //////////////////////////////

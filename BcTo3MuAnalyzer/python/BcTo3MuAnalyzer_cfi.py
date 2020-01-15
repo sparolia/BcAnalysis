@@ -3,6 +3,7 @@ import FWCore.ParameterSet.Config as cms
 rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
     dimuons = cms.InputTag('slimmedMuons'),
     Trak = cms.InputTag('packedPFCandidates'),
+    isSignalChannel = cms.bool(True),
     prunedGenParticles = cms.InputTag('prunedGenParticles'),
     packedGenParticles = cms.InputTag("packedGenParticles"),
     genPUProtons = cms.InputTag("genPUProtons"),
