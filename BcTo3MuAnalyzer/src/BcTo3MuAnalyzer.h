@@ -78,15 +78,15 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     // Event information
     int run, event, lumiblock;
 
-	  // Trigger match
-	  std::vector<int>  *triggerMatchDimuon0, *triggerMatchDimuon20, *triggerMatchDimuon25;
-	  std::vector<int>  *triggerMatchJpsi, *triggerMatchJpsiTk, *triggerMatchJpsiTkTk;
+    // Trigger match
+    std::vector<int>  *triggerMatchDimuon0, *triggerMatchDimuon20, *triggerMatchDimuon25;
+    std::vector<int>  *triggerMatchJpsi, *triggerMatchJpsiTk, *triggerMatchJpsiTkTk;
 
     std::vector<int> *truthMatchMuPositiveSim, *truthMatchMuNegativeSim;
     std::vector<int> *truthMatchMuPositive, *truthMatchMuNegative;
      
     // Primary vertex
-	  float primaryVertexChi2;
+    float primaryVertexChi2;
     unsigned int nPrimaryVertices;
     float primaryVertexX, primaryVertexY, primaryVertexZ;
     float primaryVertexXError, primaryVertexYError, primaryVertexZError;
@@ -111,10 +111,10 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<float> *muonNegativeDxy, *muonNegativeDz;
     std::vector<float> *muonDCA;
 
-	  std::vector<bool> *isMuon1Soft, *isMuon2Soft;
-	  std::vector<bool> *isMuon1Tight, *isMuon2Tight;
-	  std::vector<bool> *isMuon1PF, *isMuon2PF;
-	  std::vector<bool> *isMuon1Loose, *isMuon2Loose;
+    std::vector<bool> *isMuon1Soft, *isMuon2Soft;
+    std::vector<bool> *isMuon1Tight, *isMuon2Tight;
+    std::vector<bool> *isMuon1PF, *isMuon2PF;
+    std::vector<bool> *isMuon1Loose, *isMuon2Loose;
 
     TH1F *hEventCounter;
     TH2D *h2_b_ptVsEtaGenAll, *h2_b_ptVsEtaGenCompleteDecay, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0;
@@ -123,6 +123,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;
+    int isGenDecayPresent;
 
 };
 

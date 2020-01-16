@@ -4,22 +4,22 @@ config = Configuration()
 
 config.section_("General")
 config.General.requestName = 'RJPsiAnalysis'
-config.General.workArea = 'BcTo3Muons'
+config.General.workArea = 'RJPsiAnalysis'
 config.General.transferLogs    = True
 config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
-config.JobType.psetName    = '/afs/cern.ch/user/g/garamire/work/private/CMSPisa/RJPsiAnalysis/BcTo3MuReconstruction/CMSSW_10_2_9/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
+config.JobType.psetName    = '/gpfs/ddn/users/sanchez/RPJpsi/CMSSW_10_2_9/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
 
 config.section_("Data")
 config.Data.publication  = False
 config.Data.inputDBS = 'global'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 1
-NJOBS = 1
+config.Data.unitsPerJob = 10
+NJOBS = 20 
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
-config.Data.userInputFiles = files_jpsi_munu 
+config.Data.userInputFiles = files_jpsi_taunu 
 #config.Data.outputPrimaryDataset = 'outputPrimaryDataset'
 #config.Data.outLFNDirBase = '/store/group/dpg_rpc/comm_rpc/Sandbox/garamire'
 #config.Data.outLFNDirBase = '/store/group/phys_bphys/garamire/'
