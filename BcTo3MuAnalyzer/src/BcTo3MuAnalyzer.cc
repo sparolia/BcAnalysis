@@ -225,15 +225,12 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       if(genPruned->pdgId() == 541) 
       {
         isBcGenerated = true;
+        nParticlesFound++;
+        gen_b_p4.SetPtEtaPhiM(genPruned->pt(),genPruned->eta(), genPruned->phi(), genPruned->mass());
+        gen_b_vtx.SetXYZ(genPruned->vx(), genPruned->vy(), genPruned->vz());
         for(size_t i = 0; i < genPruned->numberOfDaughters(); ++i)
         {
           const reco::Candidate *iDaughter = genPruned->daughter(i);
-          if(iDaughter->pdgId() == 541)
-          {
-            nParticlesFound++;
-            gen_b_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
-            gen_b_vtx.SetXYZ(iDaughter->vx(), iDaughter->vy(), iDaughter->vz());
-          }
           if(iDaughter->pdgId() == 443) 
           {
             nParticlesFound++;
@@ -283,15 +280,18 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
         // TODO: Find a intelligen way to avoid the following if:
         if(nParticlesFound == 1) continue;
-        if(nParticlesFound > 1) 
+        if(nParticlesFound > 3) 
         {
           h2_b_ptVsEtaGenAll->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
           h2_jpsi_ptVsEtaGenAll->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
           h2_muon_ptVsEtaGenAll->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
           h2_muon_ptVsEtaGenAll->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
         }
-        if (nParticlesFound == 4)
+        if (nParticlesFound == 5)
         {
+          std::cout << "nParticlesFound: " << nParticlesFound << std::endl;
+          std::cout << "Pt: " << gen_b_p4.Pt() << std::endl;
+          std::cout << "Eta: " << gen_b_p4.Eta() << std::endl;
           isGenDecayPresent = true;
           h2_b_ptVsEtaGenCompleteDecay->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
           h2_jpsi_ptVsEtaGenCompleteDecay->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
@@ -420,7 +420,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       // The (PDG) mass of the muon and the insignificant mass sigma
       // to avoid singularities in the covarience matrix.
       ParticleMass muonMass = 0.10565837;
-      ParticleMass jpsiMass = 3.096916;
+      //ParticleMass jpsiMass = 3.096916;
       float muonMassSigma = muonMass*1.0e-6;
 
       // Creating a Kinematic particle factory.
@@ -781,26 +781,27 @@ BcTo3MuAnalyzer::beginJob()
 	std::cout << "Begin analyzer job" << std::endl;
 
 	edm::Service<TFileService> fs;
+
   hEventCounter = fs->make<TH1F>("nGeneratedEvents", "nGeneratedEvents", 10, 0., 10.);
-  h2_b_ptVsEtaGenAll = fs->make<TH2D>("h2_b_ptVsEtaGenAll", "h2_b_ptVsEtaGenAll", 70, 0., 35., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenAll = fs->make<TH2D>("h2_jpsi_ptVsEtaGenAll", "h2_jpsi_ptVsEtaGenAll", 70, 0., 35., 60, -3., 3.);
-  h2_muon_ptVsEtaGenAll = fs->make<TH2D>("h2_muon_ptVsEtaGenAll", "h2_muon_ptVsEtaGenAll", 70, 0.,35., 60, -3., 3.);
+  h2_b_ptVsEtaGenAll = fs->make<TH2D>("h2_b_ptVsEtaGenAll", "h2_b_ptVsEtaGenAll", 200, 0., 100., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenAll = fs->make<TH2D>("h2_jpsi_ptVsEtaGenAll", "h2_jpsi_ptVsEtaGenAll", 200, 0., 100., 60, -3., 3.);
+  h2_muon_ptVsEtaGenAll = fs->make<TH2D>("h2_muon_ptVsEtaGenAll", "h2_muon_ptVsEtaGenAll", 200, 0., 100., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay", "h2_b_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay", "h2_jpsi_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
-  h2_muon_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay", "h2_muon_ptVsEtaGenCompleteDecay", 70, 0.,35., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay", "h2_b_ptVsEtaGenCompleteDecay", 200, 0., 100., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay", "h2_jpsi_ptVsEtaGenCompleteDecay", 200, 0., 100., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay", "h2_muon_ptVsEtaGenCompleteDecay", 200, 0., 100., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
-  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", 70, 0.,35., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk", 200, 0., 100., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk", 200, 0., 100., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk", 200, 0., 100., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
-  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 70, 0.,35., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 200, 0., 100., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 200, 0., 100., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", "h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk", 200, 0., 100., 60, -3., 3.);
 
-  h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
-  h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
-  h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", 70, 0.,35., 60, -3., 3.);
+  h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0", 200, 0., 100., 60, -3., 3.);
+  h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0", 200, 0., 100., 60, -3., 3.);
+  h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0 = fs->make<TH2D>("h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", "h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0", 200, 0., 100., 60, -3., 3.);
 
 	tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
 
