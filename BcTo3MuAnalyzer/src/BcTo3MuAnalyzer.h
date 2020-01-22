@@ -92,17 +92,31 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     float primaryVertexXError, primaryVertexYError, primaryVertexZError;
     float primaryVertexXYError, primaryVertexXZError, primaryVertexYZError;
 
+    // Bc particle
+    unsigned int nBc;
+    std::vector<float> *Bc_chi2;
+    std::vector<float> *Bc_vertexProbability;
 
-    // J/Psi particles 
-    std::vector<float> *jpsi_chi2;
-    std::vector<float> *jpsi_vertexProbability;
+    std::vector<float> *Bc_mass, *Bc_px, *Bc_py, *Bc_pz;
+    std::vector<int> *Bc_charge;
 
-    std::vector<float> *jpsi_mass, *jpsi_pt, *jpsi_px, *jpsi_py, *jpsi_pz;
+    // J/Psi particles coming from Bc
+    std::vector<float> *Bc_jpsi_chi2;
+    std::vector<float> *Bc_jpsi_vertexProbability;
+
+    std::vector<float> *Bc_jpsi_mass,*Bc_jpsi_pt, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
 
     // Muons coming from J/Psi
-    std::vector<float> *jpsi_mu1_pt, *jpsi_mu1_px, *jpsi_mu1_py, *jpsi_mu1_pz;
-    std::vector<float> *jpsi_mu2_pt, *jpsi_mu2_px, *jpsi_mu2_py, *jpsi_mu2_pz;
-    std::vector<int> *jpsi_mu1_charge, *jpsi_mu2_charge;
+    std::vector<float> *Bc_jpsi_mu1_pt, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
+    std::vector<float> *Bc_jpsi_mu2_pt, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
+    std::vector<int> *Bc_jpsi_mu1_charge, *Bc_jpsi_mu2_charge;
+
+    // Muon coming from Bc
+    unsigned int nMuons;
+    std::vector<float> *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
+    std::vector<float> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
+    std::vector<int> *Bc_mu_charge;
+
     // Muon IDs and other properties
     std::vector<float> *muonPositiveChi2, *muonNegativeChi2;
     std::vector<int> *muonPositiveNumHits, *muonPositiveNumPixelHits;
@@ -120,10 +134,10 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     TH2D *h2_b_ptVsEtaGenAll, *h2_b_ptVsEtaGenCompleteDecay, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0;
     TH2D *h2_jpsi_ptVsEtaGenAll, *h2_jpsi_ptVsEtaGenCompleteDecay, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0;
     TH2D *h2_muon_ptVsEtaGenAll, *h2_muon_ptVsEtaGenCompleteDecay, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0;
+    std::vector<int> *genDecayPresent;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;
-    int isGenDecayPresent;
 
 };
 

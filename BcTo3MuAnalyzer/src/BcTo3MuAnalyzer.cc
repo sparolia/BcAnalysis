@@ -111,16 +111,25 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   primaryVertexX(0), primaryVertexY(0), primaryVertexZ(0),
   primaryVertexXError(0), primaryVertexYError(0), primaryVertexZError(0),
   primaryVertexXYError(0), primaryVertexXZError(0), primaryVertexYZError(0),
+  nBc(0),
+  Bc_chi2(0),
+  Bc_vertexProbability(0),
+  Bc_mass(0), Bc_px(0), Bc_py(0), Bc_pz(0), Bc_charge(0),
 
-  // J/Psi particles coming from Bc
-  jpsi_chi2(0),
-  jpsi_vertexProbability(0),
-  jpsi_mass(0), jpsi_pt(0), jpsi_px(0), jpsi_py(0), jpsi_pz(0),
+  Bc_jpsi_chi2(0),
+  Bc_jpsi_vertexProbability(0),
+  Bc_jpsi_mass(0), Bc_jpsi_pt(0), Bc_jpsi_px(0), Bc_jpsi_py(0), Bc_jpsi_pz(0),
 
   // Muons coming from the J/Psi
-  jpsi_mu1_pt(0), jpsi_mu1_px(0), jpsi_mu1_py(0), jpsi_mu1_pz(0),
-  jpsi_mu2_pt(0), jpsi_mu2_px(0), jpsi_mu2_py(0), jpsi_mu2_pz(0),
-  jpsi_mu1_charge(0), jpsi_mu2_charge(0),
+  Bc_jpsi_mu1_pt(0), Bc_jpsi_mu1_px(0), Bc_jpsi_mu1_py(0), Bc_jpsi_mu1_pz(0),
+  Bc_jpsi_mu2_pt(0), Bc_jpsi_mu2_px(0), Bc_jpsi_mu2_py(0), Bc_jpsi_mu2_pz(0),
+  Bc_jpsi_mu1_charge(0), Bc_jpsi_mu2_charge(0),
+
+  // Muon coming from the Bc
+  nMuons(0),
+  Bc_mu_px(0), Bc_mu_py(0), Bc_mu_pz(0),
+  Bc_mu_px_noFit(0), Bc_mu_py_noFit(0), Bc_mu_pz_noFit(0),
+  Bc_mu_charge(0),
 
   // Muon IDs and other properties
   muonPositiveChi2(0), muonNegativeChi2(0),
@@ -139,9 +148,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   hEventCounter(0),
   h2_b_ptVsEtaGenAll(0), h2_b_ptVsEtaGenCompleteDecay(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
   h2_jpsi_ptVsEtaGenAll(0), h2_jpsi_ptVsEtaGenCompleteDecay(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
-  h2_muon_ptVsEtaGenAll(0), h2_muon_ptVsEtaGenCompleteDecay(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0(0)
-  
-
+  h2_muon_ptVsEtaGenAll(0), h2_muon_ptVsEtaGenCompleteDecay(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
+  genDecayPresent(0)
   
 {
    //now do what ever initialization is needed
@@ -204,7 +212,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_b_vtx.SetXYZ(0.,0.,0.);
   gen_jpsi_vtx.SetXYZ(0.,0.,0.);
   gen_b_ct = -99;
-  isGenDecayPresent = 0;
+  int isGenDecayPresent = 0;
   
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -341,6 +349,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
   primaryVertexChi2 = ChiSquaredProbability((double)(bestVertex.chi2()),(double)(bestVertex.ndof()));
   nPrimaryVertices = thePrimaryVerticesHandle->size();
+  nMuons = thePATMuonHandle->size(); 
 
   lumiblock = iEvent.id().luminosityBlock();
   run = iEvent.id().run();
@@ -353,7 +362,9 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   // products of the Bc
   /////////////////////////////////////////////////////
 
+
   bool jpsiFound = false;
+  int nBc = 0;
   for(View<pat::Muon>::const_iterator patMuon1 = thePATMuonHandle->begin(); patMuon1 != thePATMuonHandle->end(); ++patMuon1)
   {
 
@@ -411,7 +422,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       // The (PDG) mass of the muon and the insignificant mass sigma
       // to avoid singularities in the covarience matrix.
       ParticleMass muonMass = 0.10565837;
-      //ParticleMass jpsiMass = 3.096916;
+      ParticleMass jpsiMass = 3.096916;
       float muonMassSigma = muonMass*1.0e-6;
 
       // Creating a Kinematic particle factory.
@@ -451,57 +462,30 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       RefCountedKinematicParticle jpsiVertexFit = jpsiVertexFitTree->currentParticle();
       RefCountedKinematicVertex jpsiVertexFit_vertex = jpsiVertexFitTree->currentDecayVertex();
 
-      if(jpsiVertexFit_vertex->chiSquared() <0.0) continue;
+      //if(jpsiVertexFit_vertex->chiSquared() <0.0) continue;
       //if(jpsiVertexFit_vertex->chiSquared() >50.0) continue;
 
-      //if(jpsiVertexFit->currentState().mass()<2.9) continue;
-      //if(jpsiVertexFit->currentState().mass()>3.3) continue;
+      if(jpsiVertexFit->currentState().mass()<2.5) continue;
+      if(jpsiVertexFit->currentState().mass()>3.5) continue;
 
       double jpsiProb_tmp = TMath::Prob(jpsiVertexFit_vertex->chiSquared(),(int)jpsiVertexFit_vertex->degreesOfFreedom());
 
-      if(jpsiProb_tmp <0.0) continue;
+      //if(jpsiProb_tmp <0.0) continue;
 
       TLorentzVector jpsi4V;
       auto jpsiGlobalMomentum = jpsiVertexFit->currentState().globalMomentum();
       jpsi4V.SetXYZM(jpsiGlobalMomentum.x(), jpsiGlobalMomentum.y(), jpsiGlobalMomentum.z(), jpsiVertexFit->currentState().mass());
 
-      // For thhe JPsi and the muon from its decay
-
-      jpsi_mass->push_back(jpsiVertexFit->currentState().mass());
-      jpsi_pt->push_back(jpsiGlobalMomentum.perp());
-      jpsi_px->push_back(jpsiGlobalMomentum.x());
-      jpsi_py->push_back(jpsiGlobalMomentum.y());
-      jpsi_pz->push_back(jpsiGlobalMomentum.z());
-
-      jpsi_mu1_pt->push_back(globalTrackMuPositive->pt());
-      jpsi_mu1_px->push_back(globalTrackMuPositive->px());
-      jpsi_mu1_py->push_back(globalTrackMuPositive->py());
-      jpsi_mu1_pz->push_back(globalTrackMuPositive->pz());
-      jpsi_mu1_charge->push_back((int)globalTrackMuPositive->charge());
-      std::cout << globalTrackMuPositive->charge() << std::endl;
-
-      
-      jpsi_mu2_pt->push_back(globalTrackMuNegative->pt());
-      jpsi_mu2_px->push_back(globalTrackMuNegative->px());
-      jpsi_mu2_py->push_back(globalTrackMuNegative->py());
-      jpsi_mu2_pz->push_back(globalTrackMuNegative->pz());
-      jpsi_mu2_charge->push_back(globalTrackMuNegative->charge());
-      
-
-      jpsi_chi2->push_back(jpsiVertexFit_vertex->chiSquared());
-
-
-      jpsi_vertexProbability->push_back(jpsiProb_tmp);
-
+  
       // Check for trigger matching
-
+  
       int triggerMatchDimuon20_tmp = 0;
       int triggerMatchDimuon25_tmp = 0;
       int triggerMatchJpsiTk_tmp = 0;
       int triggerMatchDimuon0_tmp = 0;
       int triggerMatchJpsi_tmp = 0;
       int triggerMatchJpsiTkTk_tmp = 0;
-
+  
       const pat::Muon* muon1 = &(*patMuon1);
       const pat::Muon* muon2 = &(*patMuon2);
       
@@ -522,67 +506,71 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       TVector3 reco_muonPositive_p3, reco_muonNegative_p3;
       reco_muonPositive_p3.SetXYZ(globalTrackMuPositive->px(),globalTrackMuPositive->py(),globalTrackMuPositive->pz());
       reco_muonNegative_p3.SetXYZ(globalTrackMuNegative->px(),globalTrackMuNegative->py(),globalTrackMuNegative->pz());
-
+  
       
-      if(isMC_&& isGenDecayPresent)
+      int truthMatchMuonPositiveSim = 0;
+      int truthMatchMuonNegativeSim = 0;
+      int truthMatchMuonPositive = 0;
+      int truthMatchMuonNegative = 0;
+      if(isMC_)
       {
-        if(triggerMatchDimuon0_tmp)
+        if(isGenDecayPresent)
         {
-          h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
-          h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          if(triggerMatchDimuon0_tmp)
+          {
+            h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
+            h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          }
+          if(triggerMatchJpsiTk_tmp)
+          {
+            h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
+            h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          }
+          if(triggerMatchJpsiTkTk_tmp)
+          {
+            h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
+            h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
+            h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
+          }
         }
-        if(triggerMatchJpsiTk_tmp)
-        {
-          h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
-          h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
-        }
-        if(triggerMatchJpsiTkTk_tmp)
-        {
-          h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_b_p4.Pt(), gen_b_p4.Eta());
-          h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_jpsi_p4.Pt(), gen_jpsi_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonPositive_p4.Pt(), gen_muonPositive_p4.Eta());
-          h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk->Fill(gen_muonNegative_p4.Pt(), gen_muonNegative_p4.Eta());
-        }
-
-        int truthMatchMuonPositiveSim = 0;
-        int truthMatchMuonNegativeSim = 0;
-        int truthMatchMuonPositive = 0;
-        int truthMatchMuonNegative = 0;
+  
         // Truth matching using sim information form pat::muons
         if (patMuon1->simMotherPdgId() == 443) truthMatchMuonPositiveSim =1; 
         if (patMuon2->simMotherPdgId() == 443) truthMatchMuonNegativeSim =1;
-
+  
         // Truth matching using generation information from prunedGenParticles agains the muons after decay reconstruction
         if(isTruthMatch(gen_muonPositive_p4, reco_muonPositive_p3)) truthMatchMuonPositive = 1;
         if(isTruthMatch(gen_muonNegative_p4, reco_muonNegative_p3)) truthMatchMuonNegative = 1;
-        truthMatchMuPositiveSim->push_back(truthMatchMuonPositiveSim);
-        truthMatchMuNegativeSim->push_back(truthMatchMuonNegativeSim);
-        truthMatchMuPositive->push_back(truthMatchMuonPositive);
-        truthMatchMuNegative->push_back(truthMatchMuonNegative);
-      
+  
+        genDecayPresent->push_back(isGenDecayPresent);
       }
-
+      truthMatchMuPositiveSim->push_back(truthMatchMuonPositiveSim);
+      truthMatchMuNegativeSim->push_back(truthMatchMuonNegativeSim);
+      truthMatchMuPositive->push_back(truthMatchMuonPositive);
+      truthMatchMuNegative->push_back(truthMatchMuonNegative);
+  
       // Muon IDs and other properties
       isMuon1Soft->push_back(patMuon1->isSoftMuon(bestVertex));
       isMuon1Tight->push_back(patMuon1->isTightMuon(bestVertex));
       isMuon1PF->push_back(patMuon1->isPFMuon());
       isMuon1Loose->push_back(muon::isLooseMuon(*patMuon1));
-
+  
       isMuon2Soft->push_back(patMuon2->isSoftMuon(bestVertex));
       isMuon2Tight->push_back(patMuon2->isTightMuon(bestVertex));
       isMuon2PF->push_back(patMuon2->isPFMuon());
       isMuon2Loose->push_back(muon::isLooseMuon(*patMuon1));
-
+  
       muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
       muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
       muonPositiveNumPixelHits->push_back(globalTrackMuPositive->hitPattern().numberOfValidPixelHits());
       muonPositiveDxy->push_back(globalTrackMuPositive->dxy(bestVertex.position()));
       muonPositiveDz->push_back(globalTrackMuPositive->dz(bestVertex.position()));
-
+  
        
       muonNegativeChi2->push_back(globalTrackMuNegative->normalizedChi2());
       muonNegativeNumHits->push_back(globalTrackMuNegative->numberOfValidHits());
@@ -590,6 +578,129 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       muonNegativeDxy->push_back(globalTrackMuNegative->dxy(bestVertex.position()));
       muonNegativeDz->push_back(globalTrackMuNegative->dz(bestVertex.position()));
       muonDCA->push_back(dca);
+
+      for(View<pat::Muon>::const_iterator patMuon3 = thePATMuonHandle->begin(); patMuon3 != thePATMuonHandle->end(); ++patMuon3)
+      {
+        if(patMuon3->charge()==0) continue;
+        if(patMuon1==patMuon3) continue;
+        if(patMuon2==patMuon3) continue;
+        
+        reco::TrackRef globalTrackUnpairedMu;
+        globalTrackUnpairedMu = patMuon3->track();
+
+        if(globalTrackUnpairedMu.isNull()) continue;
+        //if(globalTrackMuExtra->pt()<1.0) continue;
+
+        if(!(globalTrackUnpairedMu->quality(reco::TrackBase::highPurity))) continue;
+        
+
+        reco::TransientTrack transientTrackUnpairedMu((*theBuilder).build(globalTrackUnpairedMu));
+        //FreeTrajectoryState trajectoryStateMuExtra = transientTrackMuExtra.impactPointTSCP().theState();
+
+        if(!transientTrackUnpairedMu.impactPointTSCP().isValid()) continue;
+
+        // JPsi + muon invariant mass (before kinematic vertex fit)
+
+        TLorentzVector unpairedMuon4V, jpsi4V;
+        unpairedMuon4V.SetXYZM(patMuon3->px(), patMuon3->py(), patMuon3->pz(), muonMass);
+
+        if((unpairedMuon4V + jpsi4V).M()<0. || (unpairedMuon4V + jpsi4V).M()>10.) continue;
+        
+
+        // Now we do the kinematic fit. Constaining the JPsi mass applied to the final Bplos fit.
+
+        std::vector<RefCountedKinematicParticle> vectorFitParticles;
+        vectorFitParticles.push_back(particleFactory.particle(transientTrackMuPositive, muonMass, chi,ndf, muonMassSigma));
+        vectorFitParticles.push_back(particleFactory.particle(transientTrackMuNegative, muonMass, chi,ndf, muonMassSigma));
+        vectorFitParticles.push_back(particleFactory.particle(transientTrackUnpairedMu, muonMass, chi,ndf, muonMassSigma));
+        
+        MultiTrackKinematicConstraint *jpsiConstraint = new TwoTrackMassKinematicConstraint(jpsiMass);
+        KinematicConstrainedVertexFitter constrainedVertexFitter;
+        RefCountedKinematicTree vertexFitTree = constrainedVertexFitter.fit(vectorFitParticles,jpsiConstraint);
+        if(!vertexFitTree->isValid()) continue;
+        vertexFitTree->movePointerToTheTop();
+
+        RefCountedKinematicParticle bcCandidateParticle = vertexFitTree->currentParticle();
+        RefCountedKinematicVertex bcDecayVertex = vertexFitTree->currentDecayVertex();
+
+        if(!bcDecayVertex->vertexIsValid()) continue;
+        if((bcCandidateParticle->currentState().mass()<1.7) || (bcCandidateParticle->currentState().mass()>6.7)) continue;
+        //if((bcDecayVertex->chiSquared()<0.0) || (bcDecayVertex->chiSquared()>50.0)) continue;
+        if(bcDecayVertex->chiSquared()<0.0) continue;
+
+        double bcProb_tmp = TMath::Prob(bcDecayVertex->chiSquared(),(int)bcDecayVertex->degreesOfFreedom());
+
+        if(bcProb_tmp < 0.0) continue;
+
+        // Get children from final Bc fit
+        vertexFitTree->movePointerToTheFirstChild();
+        RefCountedKinematicParticle candidateMuPositive = vertexFitTree->currentParticle();
+
+        vertexFitTree->movePointerToTheNextChild();
+        RefCountedKinematicParticle candidateMuNegative = vertexFitTree->currentParticle();
+
+        vertexFitTree->movePointerToTheNextChild();
+        RefCountedKinematicParticle candidateUnpairedMu = vertexFitTree->currentParticle();
+
+        KinematicParameters kinematicParamMuPositive = candidateMuPositive->currentState().kinematicParameters();
+        KinematicParameters kinematicParamMuNegative = candidateMuNegative->currentState().kinematicParameters();
+       
+        GlobalVector vectorMuPositive(candidateMuPositive->currentState().globalMomentum().x(),
+            candidateMuPositive->currentState().globalMomentum().y(),
+            candidateMuPositive->currentState().globalMomentum().z());
+        
+        GlobalVector vectorMuNegative(candidateMuNegative->currentState().globalMomentum().x(),
+            candidateMuNegative->currentState().globalMomentum().y(),
+            candidateMuNegative->currentState().globalMomentum().z());
+
+        KinematicParameters kinematicParamUnpairedMu = candidateUnpairedMu->currentState().kinematicParameters();
+
+        // Filling candidates variables now.
+          
+        Bc_mass->push_back(bcCandidateParticle->currentState().mass());
+        Bc_px->push_back(bcCandidateParticle->currentState().globalMomentum().x());
+        Bc_py->push_back(bcCandidateParticle->currentState().globalMomentum().y());
+        Bc_pz->push_back(bcCandidateParticle->currentState().globalMomentum().z());
+        Bc_charge->push_back(bcCandidateParticle->currentState().particleCharge());
+
+        // Filling childen variables
+        // First for the muon coming directly from the Bc
+
+        Bc_mu_px->push_back(kinematicParamUnpairedMu.momentum().x());
+        Bc_mu_py->push_back(kinematicParamUnpairedMu.momentum().y());
+        Bc_mu_pz->push_back(kinematicParamUnpairedMu.momentum().z());
+        Bc_mu_charge->push_back(candidateUnpairedMu->currentState().particleCharge());
+        
+        Bc_mu_px_noFit->push_back(patMuon3->px());
+        Bc_mu_py_noFit->push_back(patMuon3->py());
+        Bc_mu_pz_noFit->push_back(patMuon3->pz());
+
+        // For thhe JPsi and the muon from its decay
+  
+        Bc_jpsi_mass->push_back(jpsiVertexFit->currentState().mass());
+        Bc_jpsi_pt->push_back(jpsiGlobalMomentum.perp());
+        Bc_jpsi_px->push_back(jpsiGlobalMomentum.x());
+        Bc_jpsi_py->push_back(jpsiGlobalMomentum.y());
+        Bc_jpsi_pz->push_back(jpsiGlobalMomentum.z());
+  
+        Bc_jpsi_mu1_pt->push_back(vectorMuPositive.perp());
+        Bc_jpsi_mu1_px->push_back(kinematicParamMuPositive.momentum().x());
+        Bc_jpsi_mu1_py->push_back(kinematicParamMuPositive.momentum().y());
+        Bc_jpsi_mu1_pz->push_back(kinematicParamMuPositive.momentum().z());
+        Bc_jpsi_mu1_charge->push_back(candidateMuPositive->currentState().particleCharge());
+  
+        Bc_jpsi_mu2_pt->push_back(vectorMuNegative.perp());
+        Bc_jpsi_mu2_px->push_back(kinematicParamMuNegative.momentum().x());
+        Bc_jpsi_mu2_py->push_back(kinematicParamMuNegative.momentum().y());
+        Bc_jpsi_mu2_pz->push_back(kinematicParamMuNegative.momentum().z());
+        Bc_jpsi_mu2_charge->push_back(candidateMuNegative->currentState().particleCharge());
+  
+        Bc_jpsi_chi2->push_back(jpsiVertexFit_vertex->chiSquared());
+        Bc_chi2->push_back(bcDecayVertex->chiSquared());
+        Bc_jpsi_vertexProbability->push_back(jpsiProb_tmp);
+        Bc_vertexProbability->push_back(bcProb_tmp);
+        nBc++;
+      }
       jpsiFound = true;
       if(isMC_) break; // Making sure we only save one Jpsi for each event.
     }
@@ -599,29 +710,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   if(!jpsiFound)
   {
     // For thhe JPsi and the muon from its decay
-
-    jpsi_mass->push_back(-99);
-    jpsi_pt->push_back(-99);
-    jpsi_px->push_back(-99);
-    jpsi_py->push_back(-99);
-    jpsi_pz->push_back(-99);
-
-    jpsi_mu1_pt->push_back(-99);
-    jpsi_mu1_px->push_back(-99);
-    jpsi_mu1_py->push_back(-99);
-    jpsi_mu1_pz->push_back(-99);
-    jpsi_mu1_charge->push_back(-99);
-
-    
-    jpsi_mu2_pt->push_back(-99);
-    jpsi_mu2_px->push_back(-99);
-    jpsi_mu2_py->push_back(-99);
-    jpsi_mu2_pz->push_back(-99);
-    jpsi_mu2_charge->push_back(-99);
-    
-    jpsi_chi2->push_back(-99);
-
-    jpsi_vertexProbability->push_back(-99);
 
     triggerMatchDimuon20->push_back(-99);
     triggerMatchDimuon25->push_back(-99);
@@ -654,7 +742,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     muonPositiveDxy->push_back(-99);
     muonPositiveDz->push_back(-99);
 
- 	 
     muonNegativeChi2->push_back(-99);
     muonNegativeNumHits->push_back(-99);
     muonNegativeNumPixelHits->push_back(-99);
@@ -662,29 +749,54 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     muonNegativeDz->push_back(-99);
     muonDCA->push_back(-99);
   }
+
+  if(nBc < 1)
+  {
+    Bc_mass->push_back(-99);
+    Bc_px->push_back(-99);
+    Bc_py->push_back(-99);
+    Bc_pz->push_back(-99);
+    Bc_charge->push_back(-99);
+
+    Bc_mu_px->push_back(-99);
+    Bc_mu_py->push_back(-99);
+    Bc_mu_pz->push_back(-99);
+    Bc_mu_charge->push_back(-99);
+    
+    Bc_mu_px_noFit->push_back(-99);
+    Bc_mu_py_noFit->push_back(-99);
+    Bc_mu_pz_noFit->push_back(-99);
+
+    Bc_jpsi_mass->push_back(-99);
+    Bc_jpsi_pt->push_back(-99);
+    Bc_jpsi_px->push_back(-99);
+    Bc_jpsi_py->push_back(-99);
+    Bc_jpsi_pz->push_back(-99);
+  
+    Bc_jpsi_mu1_pt->push_back(-99);
+    Bc_jpsi_mu1_px->push_back(-99);
+    Bc_jpsi_mu1_py->push_back(-99);
+    Bc_jpsi_mu1_pz->push_back(-99);
+    Bc_jpsi_mu1_charge->push_back(-99);
+  
+    Bc_jpsi_mu2_pt->push_back(-99);
+    Bc_jpsi_mu2_px->push_back(-99);
+    Bc_jpsi_mu2_py->push_back(-99);
+    Bc_jpsi_mu2_pz->push_back(-99);
+    Bc_jpsi_mu2_charge->push_back(-99);
+    Bc_jpsi_chi2->push_back(-99);
+    Bc_jpsi_vertexProbability->push_back(-99);
+    Bc_chi2->push_back(-99);
+    Bc_vertexProbability->push_back(-99);
+  }
   bool saveTree = true;
   if(jpsiFound && saveTree)
   {
     tree_->Fill();
   }
   
-  jpsi_mass->clear();
-  jpsi_pt->clear();
-  jpsi_px->clear();
-  jpsi_py->clear();
-  jpsi_pz->clear();
-  
-  jpsi_mu1_pt->clear();
-  jpsi_mu1_px->clear();
-  jpsi_mu1_py->clear();
-  jpsi_mu1_pz->clear();
-  jpsi_mu2_pt->clear();
-  jpsi_mu2_px->clear();
-  jpsi_mu2_py->clear();
-  jpsi_mu2_pz->clear();
- 
-  jpsi_chi2->clear();
-  jpsi_vertexProbability->clear();
+  nBc = 0;
+  nMuons = 0;
   
   
   nPrimaryVertices=0;
@@ -736,8 +848,46 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isMuon2Tight->clear();
   isMuon2PF->clear();
   isMuon2Loose->clear();
+  genDecayPresent->clear();
 
+  Bc_charge->clear();
+  Bc_mass->clear();
+  Bc_px->clear();
+  Bc_py->clear();
+  Bc_pz->clear();
 
+  Bc_mu_px->clear();
+  Bc_mu_py->clear();
+  Bc_mu_pz->clear();
+  Bc_mu_charge->clear();
+  
+  Bc_mu_px_noFit->clear();
+  Bc_mu_py_noFit->clear();
+  Bc_mu_pz_noFit->clear();
+
+  Bc_jpsi_mass->clear();
+  Bc_jpsi_pt->clear();
+  Bc_jpsi_px->clear();
+  Bc_jpsi_py->clear();
+  Bc_jpsi_pz->clear();
+  
+  Bc_jpsi_mu1_pt->clear();
+  Bc_jpsi_mu1_px->clear();
+  Bc_jpsi_mu1_py->clear();
+  Bc_jpsi_mu1_pz->clear();
+  Bc_jpsi_mu1_charge->clear();
+  
+  Bc_jpsi_mu2_pt->clear();
+  Bc_jpsi_mu2_px->clear();
+  Bc_jpsi_mu2_py->clear();
+  Bc_jpsi_mu2_pz->clear();
+  Bc_jpsi_mu2_charge->clear();
+
+  Bc_jpsi_chi2->clear();
+  Bc_jpsi_vertexProbability->clear();
+
+  Bc_chi2->clear();
+  Bc_vertexProbability->clear();
 }
 
 double
@@ -791,27 +941,49 @@ BcTo3MuAnalyzer::beginJob()
 
   tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
   
-  tree_->Branch("jpsi_mass",&jpsi_mass);
-  tree_->Branch("jpsi_pt",&jpsi_pt);
-  tree_->Branch("jpsi_px",&jpsi_px);
-  tree_->Branch("jpsi_py",&jpsi_py);
-  tree_->Branch("jpsi_pz",&jpsi_pz);
+  tree_->Branch("nBc",&nBc,"nBc/i");
+  tree_->Branch("nMuons",&nMuons,"nMuons/i");
+
+  tree_->Branch("Bc_charge",&Bc_charge);
+  tree_->Branch("Bc_mass",&Bc_mass);
+  tree_->Branch("Bc_px",&Bc_px);
+  tree_->Branch("Bc_py",&Bc_py);
+  tree_->Branch("Bc_pz",&Bc_pz);
+
+  tree_->Branch("Bc_mu_charge",&Bc_mu_charge);
+  tree_->Branch("Bc_mu_px",&Bc_mu_px);
+  tree_->Branch("Bc_mu_py",&Bc_mu_py);
+  tree_->Branch("Bc_mu_pz",&Bc_mu_pz);
+  tree_->Branch("Bc_mu_px_noFit",&Bc_mu_px_noFit);
+  tree_->Branch("Bc_mu_py_noFit",&Bc_mu_py_noFit);
+  tree_->Branch("Bc_mu_pz_noFit",&Bc_mu_pz_noFit);
+
+
+  tree_->Branch("Bc_jpsi_mass",&Bc_jpsi_mass);
+  tree_->Branch("Bc_jpsi_pt",&Bc_jpsi_pt);
+  tree_->Branch("Bc_jpsi_px",&Bc_jpsi_px);
+  tree_->Branch("Bc_jpsi_py",&Bc_jpsi_py);
+  tree_->Branch("Bc_jpsi_pz",&Bc_jpsi_pz);
+
+  tree_->Branch("Bc_jpsi_mu1_pt",&Bc_jpsi_mu1_pt);
+  tree_->Branch("Bc_jpsi_mu1_px",&Bc_jpsi_mu1_px);
+  tree_->Branch("Bc_jpsi_mu1_py",&Bc_jpsi_mu1_py);
+  tree_->Branch("Bc_jpsi_mu1_pz",&Bc_jpsi_mu1_pz);
+  tree_->Branch("Bc_jpsi_mu1_charge",&Bc_jpsi_mu1_charge);
+
+  tree_->Branch("Bc_jpsi_mu2_pt",&Bc_jpsi_mu2_pt);
+  tree_->Branch("Bc_jpsi_mu2_px",&Bc_jpsi_mu2_px);
+  tree_->Branch("Bc_jpsi_mu2_py",&Bc_jpsi_mu2_py);
+  tree_->Branch("Bc_jpsi_mu2_pz",&Bc_jpsi_mu2_pz);
+  tree_->Branch("Bc_jpsi_mu2_charge",&Bc_jpsi_mu2_charge);
   
-  tree_->Branch("jpsi_mu1_pt",&jpsi_mu1_pt);
-  tree_->Branch("jpsi_mu1_px",&jpsi_mu1_px);
-  tree_->Branch("jpsi_mu1_py",&jpsi_mu1_py);
-  tree_->Branch("jpsi_mu1_pz",&jpsi_mu1_pz);
-  tree_->Branch("jpsi_mu1_charge",&jpsi_mu1_charge);
-  
-  tree_->Branch("jpsi_mu2_pt",&jpsi_mu2_pt);
-  tree_->Branch("jpsi_mu2_px",&jpsi_mu2_px);
-  tree_->Branch("jpsi_mu2_py",&jpsi_mu2_py);
-  tree_->Branch("jpsi_mu2_pz",&jpsi_mu2_pz);
-  tree_->Branch("jpsi_mu2_charge",&jpsi_mu2_charge);
-  
-  tree_->Branch("jpsi_chi2",&jpsi_chi2);
-  tree_->Branch("jpsi_vertexProbability",&jpsi_vertexProbability);
-  
+
+
+  tree_->Branch("Bc_chi2",&Bc_chi2);
+  tree_->Branch("Bc_jpsi_chi2",&Bc_jpsi_chi2);
+  tree_->Branch("Bc_vertexProbability",&Bc_vertexProbability);
+  tree_->Branch("Bc_jpsi_vertexProbability",&Bc_jpsi_vertexProbability);
+
   tree_->Branch("primaryVertexX",&primaryVertexX);
   tree_->Branch("primaryVertexY",&primaryVertexY);
   tree_->Branch("primaryVertexZ",&primaryVertexZ);
@@ -861,6 +1033,7 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("isMuon2Tight",&isMuon2Tight);
   tree_->Branch("isMuon2PF",&isMuon2PF);
   tree_->Branch("isMuon2Loose",&isMuon2Loose);
+  tree_->Branch("genDecayPresent", &genDecayPresent);
   if(isMC_)
   {
     tree_->Branch("gen_b_p4", "TLorentzVector", &gen_b_p4);
@@ -870,7 +1043,6 @@ BcTo3MuAnalyzer::beginJob()
     tree_->Branch("gen_b_vtx", "TVector3", &gen_b_vtx);
     tree_->Branch("gen_jpsi_vtx", "TVector3", &gen_jpsi_vtx);
     tree_->Branch("gen_b_ct", &gen_b_ct, "gen_b_ct/F");
-    tree_->Branch("isGenDecayPresent", &isGenDecayPresent, "isGenDecayPresent/I");
   }
 }
 
