@@ -103,8 +103,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   triggerMatchJpsi(0), triggerMatchJpsiTk(0), triggerMatchJpsiTkTk(0),
 
   //Sort of truth match using sim information from pat::muons 
-  truthMatchMuPositiveSim(0), truthMatchMuNegativeSim(0),
-  truthMatchMuPositive(0), truthMatchMuNegative(0),
+  truthMatchMuPositiveSim(0), truthMatchMuNegativeSim(0), truthMatchUnpairedMuSim(0),
+  truthMatchMuPositive(0), truthMatchMuNegative(0), truthMatchUnpairedMu(0),
   // Primary vertex
   primaryVertexChi2(0),
   nPrimaryVertices(0),
@@ -124,12 +124,14 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   Bc_jpsi_mu1_pt(0), Bc_jpsi_mu1_px(0), Bc_jpsi_mu1_py(0), Bc_jpsi_mu1_pz(0),
   Bc_jpsi_mu2_pt(0), Bc_jpsi_mu2_px(0), Bc_jpsi_mu2_py(0), Bc_jpsi_mu2_pz(0),
   Bc_jpsi_mu1_charge(0), Bc_jpsi_mu2_charge(0),
+  Bc_jpsi_mu1_eta(0), Bc_jpsi_mu2_eta(0),
 
   // Muon coming from the Bc
   nMuons(0),
-  Bc_mu_px(0), Bc_mu_py(0), Bc_mu_pz(0),
+  Bc_mu_pt(0), Bc_mu_px(0), Bc_mu_py(0), Bc_mu_pz(0),
   Bc_mu_px_noFit(0), Bc_mu_py_noFit(0), Bc_mu_pz_noFit(0),
   Bc_mu_charge(0),
+  Bc_mu_eta(0), Bc_mu_eta_noFit(0),
 
   // Muon IDs and other properties
   muonPositiveChi2(0), muonNegativeChi2(0),
@@ -141,9 +143,18 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
 
   
   isMuon1Soft(0), isMuon2Soft(0),
+  isMuon1Global(0), isMuon2Global(0),
+  isMuon1Tracker(0), isMuon2Tracker(0),
   isMuon1Tight(0), isMuon2Tight(0),
   isMuon1PF(0), isMuon2PF(0),
   isMuon1Loose(0), isMuon2Loose(0),
+
+  isUnpairedMuonSoft(0),
+  isUnpairedMuonGlobal(0),
+  isUnpairedMuonTracker(0),
+  isUnpairedMuonTight(0),
+  isUnpairedMuonPF(0),
+  isUnpairedMuonLoose(0),
 
   hEventCounter(0),
   h2_b_ptVsEtaGenAll(0), h2_b_ptVsEtaGenCompleteDecay(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk(0), h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0(0),
@@ -212,7 +223,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_b_vtx.SetXYZ(0.,0.,0.);
   gen_jpsi_vtx.SetXYZ(0.,0.,0.);
   gen_b_ct = -99;
-  int isGenDecayPresent = 0;
+  short isGenDecayPresent = 0;
   
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -364,7 +375,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
   bool jpsiFound = false;
-  int nBc = 0;
   for(View<pat::Muon>::const_iterator patMuon1 = thePATMuonHandle->begin(); patMuon1 != thePATMuonHandle->end(); ++patMuon1)
   {
 
@@ -556,14 +566,18 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   
       // Muon IDs and other properties
       isMuon1Soft->push_back(patMuon1->isSoftMuon(bestVertex));
+      isMuon1Global->push_back(patMuon1->isGlobalMuon());
+      isMuon1Tracker->push_back(patMuon1->isTrackerMuon());
       isMuon1Tight->push_back(patMuon1->isTightMuon(bestVertex));
       isMuon1PF->push_back(patMuon1->isPFMuon());
       isMuon1Loose->push_back(muon::isLooseMuon(*patMuon1));
   
       isMuon2Soft->push_back(patMuon2->isSoftMuon(bestVertex));
+      isMuon2Global->push_back(patMuon2->isGlobalMuon());
+      isMuon2Tracker->push_back(patMuon2->isTrackerMuon());
       isMuon2Tight->push_back(patMuon2->isTightMuon(bestVertex));
       isMuon2PF->push_back(patMuon2->isPFMuon());
-      isMuon2Loose->push_back(muon::isLooseMuon(*patMuon1));
+      isMuon2Loose->push_back(muon::isLooseMuon(*patMuon2));
   
       muonPositiveChi2->push_back(globalTrackMuPositive->normalizedChi2());
       muonPositiveNumHits->push_back(globalTrackMuPositive->numberOfValidHits());
@@ -631,6 +645,22 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         double bcProb_tmp = TMath::Prob(bcDecayVertex->chiSquared(),(int)bcDecayVertex->degreesOfFreedom());
 
         if(bcProb_tmp < 0.0) continue;
+        
+        TVector3 reco_unpairedMuon_p3;
+        reco_unpairedMuon_p3.SetXYZ(globalTrackUnpairedMu->px(),globalTrackUnpairedMu->py(),globalTrackUnpairedMu->pz());
+        short truthMatchUnpairedMuonSim = 0;
+        short truthMatchUnpairedMuon = 0;
+        short pdgIdUnpairedMuonParent = 541;
+        if(isSignalChannel_) pdgIdUnpairedMuonParent = 15;
+        if(isGenDecayPresent && isMC_)
+        {
+          //std::cout << abs(patMuon3->simMotherPdgId()) << std::endl;
+          if(abs(patMuon3->simMotherPdgId()) == pdgIdUnpairedMuonParent) truthMatchUnpairedMuonSim = 1;
+          if(isTruthMatch(gen_unpairedMuon_p4, reco_unpairedMuon_p3)) truthMatchUnpairedMuon = 1;
+
+        }
+        truthMatchUnpairedMuSim->push_back(truthMatchUnpairedMuonSim);
+        truthMatchUnpairedMu->push_back(truthMatchUnpairedMuon);
 
         // Get children from final Bc fit
         vertexFitTree->movePointerToTheFirstChild();
@@ -666,14 +696,17 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         // Filling childen variables
         // First for the muon coming directly from the Bc
 
+        Bc_mu_pt->push_back(kinematicParamUnpairedMu.momentum().perp());
         Bc_mu_px->push_back(kinematicParamUnpairedMu.momentum().x());
         Bc_mu_py->push_back(kinematicParamUnpairedMu.momentum().y());
         Bc_mu_pz->push_back(kinematicParamUnpairedMu.momentum().z());
         Bc_mu_charge->push_back(candidateUnpairedMu->currentState().particleCharge());
+        Bc_mu_eta->push_back(kinematicParamUnpairedMu.momentum().eta());
         
         Bc_mu_px_noFit->push_back(patMuon3->px());
         Bc_mu_py_noFit->push_back(patMuon3->py());
         Bc_mu_pz_noFit->push_back(patMuon3->pz());
+        Bc_mu_eta_noFit->push_back(patMuon3->eta());
 
         // For thhe JPsi and the muon from its decay
   
@@ -688,17 +721,27 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Bc_jpsi_mu1_py->push_back(kinematicParamMuPositive.momentum().y());
         Bc_jpsi_mu1_pz->push_back(kinematicParamMuPositive.momentum().z());
         Bc_jpsi_mu1_charge->push_back(candidateMuPositive->currentState().particleCharge());
+        Bc_jpsi_mu1_eta->push_back(kinematicParamMuPositive.momentum().eta());
   
         Bc_jpsi_mu2_pt->push_back(vectorMuNegative.perp());
         Bc_jpsi_mu2_px->push_back(kinematicParamMuNegative.momentum().x());
         Bc_jpsi_mu2_py->push_back(kinematicParamMuNegative.momentum().y());
         Bc_jpsi_mu2_pz->push_back(kinematicParamMuNegative.momentum().z());
         Bc_jpsi_mu2_charge->push_back(candidateMuNegative->currentState().particleCharge());
+        Bc_jpsi_mu2_eta->push_back(kinematicParamMuNegative.momentum().eta());
   
         Bc_jpsi_chi2->push_back(jpsiVertexFit_vertex->chiSquared());
         Bc_chi2->push_back(bcDecayVertex->chiSquared());
         Bc_jpsi_vertexProbability->push_back(jpsiProb_tmp);
         Bc_vertexProbability->push_back(bcProb_tmp);
+        
+        isUnpairedMuonSoft->push_back(patMuon3->isSoftMuon(bestVertex));
+        isUnpairedMuonGlobal->push_back(patMuon3->isGlobalMuon());
+        isUnpairedMuonTracker->push_back(patMuon3->isTrackerMuon());
+        isUnpairedMuonTight->push_back(patMuon3->isTightMuon(bestVertex));
+        isUnpairedMuonPF->push_back(patMuon3->isPFMuon());
+        isUnpairedMuonLoose->push_back(muon::isLooseMuon(*patMuon3));
+
         nBc++;
       }
       jpsiFound = true;
@@ -727,11 +770,15 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
      // Muon IDs and other properties
 
     isMuon1Soft->push_back(-99);
+    isMuon1Global->push_back(-99);
+    isMuon1Tracker->push_back(-99);
     isMuon1Tight->push_back(-99);
     isMuon1PF->push_back(-99);
     isMuon1Loose->push_back(-99);
 
     isMuon2Soft->push_back(-99);
+    isMuon2Global->push_back(-99);
+    isMuon2Tracker->push_back(-99);
     isMuon2Tight->push_back(-99);
     isMuon2PF->push_back(-99);
     isMuon2Loose->push_back(-99);
@@ -758,14 +805,17 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     Bc_pz->push_back(-99);
     Bc_charge->push_back(-99);
 
+    Bc_mu_pt->push_back(-99);
     Bc_mu_px->push_back(-99);
     Bc_mu_py->push_back(-99);
     Bc_mu_pz->push_back(-99);
     Bc_mu_charge->push_back(-99);
+    Bc_mu_eta->push_back(-99);
     
     Bc_mu_px_noFit->push_back(-99);
     Bc_mu_py_noFit->push_back(-99);
     Bc_mu_pz_noFit->push_back(-99);
+    Bc_mu_eta_noFit->push_back(-99);
 
     Bc_jpsi_mass->push_back(-99);
     Bc_jpsi_pt->push_back(-99);
@@ -778,16 +828,30 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     Bc_jpsi_mu1_py->push_back(-99);
     Bc_jpsi_mu1_pz->push_back(-99);
     Bc_jpsi_mu1_charge->push_back(-99);
+    Bc_jpsi_mu1_eta->push_back(-99);
   
     Bc_jpsi_mu2_pt->push_back(-99);
     Bc_jpsi_mu2_px->push_back(-99);
     Bc_jpsi_mu2_py->push_back(-99);
     Bc_jpsi_mu2_pz->push_back(-99);
     Bc_jpsi_mu2_charge->push_back(-99);
+    Bc_jpsi_mu2_eta->push_back(-99);
+    
+
     Bc_jpsi_chi2->push_back(-99);
     Bc_jpsi_vertexProbability->push_back(-99);
     Bc_chi2->push_back(-99);
     Bc_vertexProbability->push_back(-99);
+
+    truthMatchUnpairedMuSim->push_back(-99);
+    truthMatchUnpairedMu->push_back(-99);
+
+    isUnpairedMuonSoft->push_back(-99);
+    isUnpairedMuonGlobal->push_back(-99);
+    isUnpairedMuonTracker->push_back(-99);
+    isUnpairedMuonTight->push_back(-99);
+    isUnpairedMuonPF->push_back(-99);
+    isUnpairedMuonLoose->push_back(-99);
   }
   bool saveTree = true;
   if(jpsiFound && saveTree)
@@ -840,14 +904,26 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   truthMatchMuNegative->clear();
   
   isMuon1Soft->clear();
+  isMuon1Global->clear();
+  isMuon1Tracker->clear();
   isMuon1Tight->clear();
   isMuon1PF->clear();
   isMuon1Loose->clear();
   
   isMuon2Soft->clear();
+  isMuon2Global->clear();
+  isMuon2Tracker->clear();
   isMuon2Tight->clear();
   isMuon2PF->clear();
   isMuon2Loose->clear();
+  genDecayPresent->clear();
+
+  isUnpairedMuonSoft->clear();
+  isUnpairedMuonGlobal->clear();
+  isUnpairedMuonTracker->clear();
+  isUnpairedMuonTight->clear();
+  isUnpairedMuonPF->clear();
+  isUnpairedMuonLoose->clear();
   genDecayPresent->clear();
 
   Bc_charge->clear();
@@ -856,14 +932,17 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   Bc_py->clear();
   Bc_pz->clear();
 
+  Bc_mu_pt->clear();
   Bc_mu_px->clear();
   Bc_mu_py->clear();
   Bc_mu_pz->clear();
   Bc_mu_charge->clear();
+  Bc_mu_eta->clear();
   
   Bc_mu_px_noFit->clear();
   Bc_mu_py_noFit->clear();
   Bc_mu_pz_noFit->clear();
+  Bc_mu_eta_noFit->clear();
 
   Bc_jpsi_mass->clear();
   Bc_jpsi_pt->clear();
@@ -876,18 +955,22 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   Bc_jpsi_mu1_py->clear();
   Bc_jpsi_mu1_pz->clear();
   Bc_jpsi_mu1_charge->clear();
+  Bc_jpsi_mu1_eta->clear();
   
   Bc_jpsi_mu2_pt->clear();
   Bc_jpsi_mu2_px->clear();
   Bc_jpsi_mu2_py->clear();
   Bc_jpsi_mu2_pz->clear();
   Bc_jpsi_mu2_charge->clear();
+  Bc_jpsi_mu2_eta->clear();
 
   Bc_jpsi_chi2->clear();
   Bc_jpsi_vertexProbability->clear();
 
   Bc_chi2->clear();
   Bc_vertexProbability->clear();
+  truthMatchUnpairedMuSim->clear();
+  truthMatchUnpairedMu->clear();
 }
 
 double
@@ -900,7 +983,7 @@ BcTo3MuAnalyzer::GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_
   Double_t lxy = deltaVtx.Dot(b_p3)/b_p3.Mag();
   return lxy*b_p4.M()/b_p3.Mag();
 }
-int
+short
 BcTo3MuAnalyzer::isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3)
 {
   TVector3 sim_p3 = sim_p4.Vect();
@@ -951,12 +1034,15 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("Bc_pz",&Bc_pz);
 
   tree_->Branch("Bc_mu_charge",&Bc_mu_charge);
+  tree_->Branch("Bc_mu_pt",&Bc_mu_pt);
   tree_->Branch("Bc_mu_px",&Bc_mu_px);
   tree_->Branch("Bc_mu_py",&Bc_mu_py);
   tree_->Branch("Bc_mu_pz",&Bc_mu_pz);
   tree_->Branch("Bc_mu_px_noFit",&Bc_mu_px_noFit);
   tree_->Branch("Bc_mu_py_noFit",&Bc_mu_py_noFit);
   tree_->Branch("Bc_mu_pz_noFit",&Bc_mu_pz_noFit);
+  tree_->Branch("Bc_mu_eta",&Bc_mu_eta);
+  tree_->Branch("Bc_mu_eta_noFit",&Bc_mu_eta_noFit);
 
 
   tree_->Branch("Bc_jpsi_mass",&Bc_jpsi_mass);
@@ -970,12 +1056,14 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("Bc_jpsi_mu1_py",&Bc_jpsi_mu1_py);
   tree_->Branch("Bc_jpsi_mu1_pz",&Bc_jpsi_mu1_pz);
   tree_->Branch("Bc_jpsi_mu1_charge",&Bc_jpsi_mu1_charge);
+  tree_->Branch("Bc_jpsi_mu1_eta",&Bc_jpsi_mu1_eta);
 
   tree_->Branch("Bc_jpsi_mu2_pt",&Bc_jpsi_mu2_pt);
   tree_->Branch("Bc_jpsi_mu2_px",&Bc_jpsi_mu2_px);
   tree_->Branch("Bc_jpsi_mu2_py",&Bc_jpsi_mu2_py);
   tree_->Branch("Bc_jpsi_mu2_pz",&Bc_jpsi_mu2_pz);
   tree_->Branch("Bc_jpsi_mu2_charge",&Bc_jpsi_mu2_charge);
+  tree_->Branch("Bc_jpsi_mu2_eta",&Bc_jpsi_mu2_eta);
   
 
 
@@ -1021,18 +1109,33 @@ BcTo3MuAnalyzer::beginJob()
 
   tree_->Branch("truthMatchMuPositiveSim",&truthMatchMuPositiveSim);
   tree_->Branch("truthMatchMuNegativeSim",&truthMatchMuNegativeSim);
+  tree_->Branch("truthMatchUnpairedMuSim",&truthMatchUnpairedMuSim);
 
   tree_->Branch("truthMatchMuPositive",&truthMatchMuPositive);
   tree_->Branch("truthMatchMuNegative",&truthMatchMuNegative);
+  tree_->Branch("truthMatchUnpairedMu",&truthMatchUnpairedMu);
   
   tree_->Branch("isMuon1Soft",&isMuon1Soft);
+  tree_->Branch("isMuon1Global",&isMuon1Global);
+  tree_->Branch("isMuon1Tracker",&isMuon1Tracker);
   tree_->Branch("isMuon1Tight",&isMuon1Tight);
   tree_->Branch("isMuon1PF",&isMuon1PF);
   tree_->Branch("isMuon1Loose",&isMuon1Loose);
+
   tree_->Branch("isMuon2Soft",&isMuon2Soft);
+  tree_->Branch("isMuon2Global",&isMuon2Global);
+  tree_->Branch("isMuon2Tracker",&isMuon2Tracker);
   tree_->Branch("isMuon2Tight",&isMuon2Tight);
   tree_->Branch("isMuon2PF",&isMuon2PF);
   tree_->Branch("isMuon2Loose",&isMuon2Loose);
+  
+  tree_->Branch("isUnpairedMuonSoft",&isUnpairedMuonSoft);
+  tree_->Branch("isUnpairedMuonGlobal",&isUnpairedMuonGlobal);
+  tree_->Branch("isUnpairedMuonTracker",&isUnpairedMuonTracker);
+  tree_->Branch("isUnpairedMuonTight",&isUnpairedMuonTight);
+  tree_->Branch("isUnpairedMuonPF",&isUnpairedMuonPF);
+  tree_->Branch("isUnpairedMuonLoose",&isUnpairedMuonLoose);
+
   tree_->Branch("genDecayPresent", &genDecayPresent);
   if(isMC_)
   {

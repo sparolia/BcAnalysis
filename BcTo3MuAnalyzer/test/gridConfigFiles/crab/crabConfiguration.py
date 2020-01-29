@@ -3,8 +3,8 @@ from inputFilesList import files_jpsi_munu, files_jpsi_taunu
 config = Configuration()
 
 config.section_("General")
-config.General.requestName = 'RJPsiSignalAnalysis'
-config.General.workArea = 'RJPsiSignalAnalysis'
+config.General.requestName = 'RJPsiNormalizationAnalysis'
+config.General.workArea = 'RJPsiNormalizationAnalysis'
 config.General.transferLogs    = True
 config.General.transferOutputs = True
 
@@ -21,7 +21,7 @@ config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 10
 NJOBS = 24 
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
-config.Data.userInputFiles = files_jpsi_taunu 
+config.Data.userInputFiles = files_jpsi_munu 
 #config.Data.outputPrimaryDataset = 'outputPrimaryDataset'
 #config.Data.outLFNDirBase = '/store/group/dpg_rpc/comm_rpc/Sandbox/garamire'
 #config.Data.outLFNDirBase = '/store/group/phys_bphys/garamire/'

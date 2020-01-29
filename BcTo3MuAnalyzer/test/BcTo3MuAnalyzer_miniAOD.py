@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu
-isSigChannel = True
+isSigChannel = False
 
 process = cms.Process("Rootuple")
 
