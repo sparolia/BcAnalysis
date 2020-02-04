@@ -1,5 +1,5 @@
 # BcAnalysis
-Code within the CMSSW framework for the recontruction of Bc+ candidates going to J/Psi + mu + nu.
+Code within the CMSSW framework for the recontruction of Bc+ candidates going to J/Psi + lepton + nu.
 
 ## Instructions to run the code:
 ```bash
