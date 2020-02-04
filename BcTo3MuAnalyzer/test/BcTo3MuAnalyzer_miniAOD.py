@@ -1,6 +1,6 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu
-isSigChannel = False
+isSigChannel = True
 
 process = cms.Process("Rootuple")
 
@@ -21,7 +21,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 inputFilesList = []
@@ -41,7 +41,8 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         #files_jpsi_munu
         #files_jpsi_taunu
-        inputFilesList
+        'file:miniAOD_99.root' 
+        #inputFilesList
       )
     )
 

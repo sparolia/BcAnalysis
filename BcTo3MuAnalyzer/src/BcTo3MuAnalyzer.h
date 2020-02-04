@@ -119,6 +119,12 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *Bc_mu_charge;
     std::vector<float> *Bc_mu_eta;
     std::vector<float> *Bc_mu_eta_noFit;
+    
+    //Neural network input variables.
+    
+    std::vector<float> *nn_energyBcRestFrame, *nn_missMass2, *nn_q2, *nn_missPt;
+    std::vector<float> *nn_energyJpsiRestFrame, *nn_varPt, *nn_deltaRMu1Mu2;
+    std::vector<float> *nn_phiUnpairedMu, *nn_ptUnpairedMu, *nn_etaUnpairedMu;
 
     // Muon IDs and other properties
     std::vector<float> *muonPositiveChi2, *muonNegativeChi2;
