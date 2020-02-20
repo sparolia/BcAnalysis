@@ -21,6 +21,7 @@
 #include "DataFormats/PatCandidates/interface/GenericParticle.h"
 #include "DataFormats/PatCandidates/interface/PackedCandidate.h"
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
+#include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
 
 
@@ -67,12 +68,13 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     edm::EDGetTokenT<pat::PackedGenParticleCollection> packedGenParticles_Label;
     edm::EDGetTokenT<reco::VertexCollection> primaryVertices_Label;
     edm::EDGetTokenT<edm::TriggerResults> triggerResults_Label;
+    edm::EDGetTokenT<pat::PackedTriggerPrescales> triggerPrescales_Label;
     edm::EDGetTokenT<reco::BeamSpot> BS_Label;
+
 
     bool OnlyBest_;
     bool isMC_;
     bool OnlyGen_;
-    bool isSignalChannel_;
     
     TTree* tree_;
     // Event information
@@ -97,7 +99,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<float> *Bc_chi2;
     std::vector<float> *Bc_vertexProbability;
 
-    std::vector<float> *Bc_mass, *Bc_px, *Bc_py, *Bc_pz;
+    std::vector<float> *Bc_mass, *Bc_px, *Bc_py, *Bc_pz, *Bc_ct;
     std::vector<short> *Bc_charge;
 
     // J/Psi particles coming from Bc
@@ -123,7 +125,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     //Neural network input variables.
     
     std::vector<float> *nn_energyBcRestFrame, *nn_missMass2, *nn_q2, *nn_missPt;
-    std::vector<float> *nn_energyJpsiRestFrame, *nn_varPt, *nn_deltaRMu1Mu2;
+    std::vector<float> *nn_missMass2Corrected, *nn_q2Corrected, *nn_missPtCorrected;
+    std::vector<float> *nn_energyJpsiRestFrame, *nn_varPt, *nn_deltaRMu1Mu2, *nn_deltaRJpsiUnpairedMu;
     std::vector<float> *nn_phiUnpairedMu, *nn_ptUnpairedMu, *nn_etaUnpairedMu;
 
     // Muon IDs and other properties
@@ -148,10 +151,9 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isUnpairedMuonPF;
     std::vector<short> *isUnpairedMuonLoose;
     TH1F *hEventCounter;
-    TH2D *h2_b_ptVsEtaGenAll, *h2_b_ptVsEtaGenCompleteDecay, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_b_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_b_ptVsEtaGenCompleteDecay_HLTDimuon0;
-    TH2D *h2_jpsi_ptVsEtaGenAll, *h2_jpsi_ptVsEtaGenCompleteDecay, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_jpsi_ptVsEtaGenCompleteDecay_HLTDimuon0;
-    TH2D *h2_muon_ptVsEtaGenAll, *h2_muon_ptVsEtaGenCompleteDecay, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTJpsiTkTk, *h2_muon_ptVsEtaGenCompleteDecay_HLTDimuon0;
-    std::vector<short> *genDecayPresent;
+    int signalDecayPresent;
+    int normalizationDecayPresent;
+    int background1DecayPresent;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;

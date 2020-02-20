@@ -1,18 +1,19 @@
 from WMCore.Configuration import Configuration
-from inputFilesList import files_jpsi_munu, files_jpsi_taunu
+from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
 config = Configuration()
 
 config.section_("General")
 #config.General.requestName = 'RJPsiNormalizationAnalysis'
 #config.General.workArea = 'RJPsiNormalizationAnalysis'
-config.General.requestName = 'RJPsiSignalAnalysis'
-config.General.workArea = 'RJPsiSignalAnalysis'
+#config.General.requestName = 'RJPsiSignalAnalysis'
+#config.General.workArea = 'RJPsiSignalAnalysis'
+config.General.requestName = 'RJPsiBackground1Analysis'
+config.General.workArea = 'RJPsiBackground1Analysis'
 config.General.transferLogs    = True
 config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
-#config.JobType.psetName    = '/gpfs/ddn/users/sanchez/RPJpsi/CMSSW_10_2_9/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
 config.JobType.psetName    = '/afs/cern.ch/user/g/garamire/work/private/CMSPisa/RJPsiAnalysis/BcTo3MuReconstruction/CMSSW_10_2_9/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
 
 config.section_("Data")
@@ -21,16 +22,13 @@ config.Data.inputDBS = 'global'
 #config.Data.splitting = 'Automatic'
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 1
-NJOBS = 11 
+NJOBS = 24 
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 #config.Data.userInputFiles = files_jpsi_munu 
 #config.Data.userInputFiles = files_jpsi_taunu 
-#config.Data.inputDataset = '/BcJpsiMuNu_020519/cgalloni-Fall18_10_2_9-MINIAODSIM_noDuplCheck-092bfc61e82f18935ea11e32077a486f/USER'
-config.Data.inputDataset = '/BcToJPsiTauNu_TuneCP5_13TeV-bcvegpy2-pythia8-evtgen/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
+config.Data.userInputFiles = files_jpsi_plusX
+#config.Data.inputDataset = '/BcToJPsiTauNu_TuneCP5_13TeV-bcvegpy2-pythia8-evtgen/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
 #config.Data.outputPrimaryDataset = 'outputPrimaryDataset'
-#config.Data.outLFNDirBase = '/store/group/dpg_rpc/comm_rpc/Sandbox/garamire'
-#config.Data.outLFNDirBase = '/store/group/phys_bphys/garamire/'
-#config.Data.outLFNDirBase = 'gsiftp://eosuserftp.cern.ch/eos/user/g/garamire'
 config.Data.outLFNDirBase = '/store/user/garamire'
 config.Data.outputDatasetTag = 'outputDatasetTag'
 config.Data.ignoreLocality = True
