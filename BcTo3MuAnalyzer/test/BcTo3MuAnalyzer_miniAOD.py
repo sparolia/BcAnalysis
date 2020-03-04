@@ -1,6 +1,7 @@
 import FWCore.ParameterSet.Config as cms
-from inputFilesList import files_jpsi_munu, files_jpsi_taunu
-isSigChannel = True
+from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
+isSigChannel = False
+isBkg = True
 
 process = cms.Process("Rootuple")
 
@@ -21,7 +22,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 
 inputFilesList = []
@@ -36,12 +37,20 @@ else:
   inputFilesList = files_jpsi_munu
   outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
 
+if(isBkg):
+  decayChannel == 'jpsiX'
+  inputFilesList = files_jpsi_plusX
+  outputRootFileName = 'RootupleBcTo3Mu_bkg.root'
+
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     fileNames = cms.untracked.vstring(
         #files_jpsi_munu
         #files_jpsi_taunu
-        'file:miniAOD_99.root' 
+        #'file:miniAOD_99.root' 
+        #'file:mini-aod-1829052.root'
+        #'/store/data/Run2018A/Charmonium/MINIAOD/17Sep2018-v1/90000/FBB6E58B-3F6C-004A-A1E3-21AB715F7D2B.root'
+        '/store/user/cgalloni/BJpsiX_MuMu_270819/Autumn18_10_2_9_miniAOD/190827_143312/0000/miniAOD_327.root'
         #inputFilesList
       )
     )
@@ -50,7 +59,6 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     triggerConditions = cms.vstring('HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*',
       'HLT_Dimuon25_Jpsi_v*',
       'HLT_Dimuon0_Jpsi3p5_Muon2_v*',
-      'HLT_DoubleMu4_3_Jpsi_v*',
       'HLT_DoubleMu4_JpsiTrkTrk_Displaced_v*',
       'HLT_DoubleMu4_JpsiTrk_Displaced_v*',
       'HLT_DoubleMu4_Jpsi_Displaced_v*',
@@ -63,7 +71,7 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
 
 process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
 
-process.rootuple.isSignalChannel = isSigChannel
+process.rootuple.isMC = False
 
 
 process.TFileService = cms.Service('TFileService',

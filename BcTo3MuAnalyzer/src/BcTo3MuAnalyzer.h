@@ -88,11 +88,11 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *truthMatchMuPositive, *truthMatchMuNegative, *truthMatchUnpairedMu;
      
     // Primary vertex
-    float primaryVertexChi2;
     unsigned short nPrimaryVertices;
-    float primaryVertexX, primaryVertexY, primaryVertexZ;
-    float primaryVertexXError, primaryVertexYError, primaryVertexZError;
-    float primaryVertexXYError, primaryVertexXZError, primaryVertexYZError;
+    std::vector<float> *primaryVertexChi2;
+    std::vector<float> *primaryVertexX, *primaryVertexY, *primaryVertexZ;
+    std::vector<float> *primaryVertexXError, *primaryVertexYError, *primaryVertexZError;
+    std::vector<float> *primaryVertexXYError, *primaryVertexXZError, *primaryVertexYZError;
 
     // Bc particle
     unsigned int nBc;
@@ -104,6 +104,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 
     // J/Psi particles coming from Bc
     std::vector<float> *Bc_jpsi_chi2;
+    std::vector<float> *Bc_jpsi_Lxy;
     std::vector<float> *Bc_jpsi_vertexProbability;
 
     std::vector<float> *Bc_jpsi_mass,*Bc_jpsi_pt, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
@@ -151,9 +152,11 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isUnpairedMuonPF;
     std::vector<short> *isUnpairedMuonLoose;
     TH1F *hEventCounter;
-    int signalDecayPresent;
-    int normalizationDecayPresent;
-    int background1DecayPresent;
+    TH1F *hDimuon0TriggerCounter;
+    TH1F *hJpsiTkTriggerCounter;
+    std::vector<int> *signalDecayPresent;
+    std::vector<int> *normalizationDecayPresent;
+    std::vector<int> *background1DecayPresent;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_muonPositive_p4, gen_muonNegative_p4, gen_unpairedMuon_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
     float gen_b_ct;

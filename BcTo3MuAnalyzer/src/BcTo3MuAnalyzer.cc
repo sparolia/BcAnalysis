@@ -107,8 +107,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   truthMatchMuPositiveSim(0), truthMatchMuNegativeSim(0), truthMatchUnpairedMuSim(0),
   truthMatchMuPositive(0), truthMatchMuNegative(0), truthMatchUnpairedMu(0),
   // Primary vertex
-  primaryVertexChi2(0),
   nPrimaryVertices(0),
+  primaryVertexChi2(0),
   primaryVertexX(0), primaryVertexY(0), primaryVertexZ(0),
   primaryVertexXError(0), primaryVertexYError(0), primaryVertexZError(0),
   primaryVertexXYError(0), primaryVertexXZError(0), primaryVertexYZError(0),
@@ -118,6 +118,7 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   Bc_mass(0), Bc_px(0), Bc_py(0), Bc_pz(0), Bc_ct(0), Bc_charge(0),
 
   Bc_jpsi_chi2(0),
+  Bc_jpsi_Lxy(0),
   Bc_jpsi_vertexProbability(0),
   Bc_jpsi_mass(0), Bc_jpsi_pt(0), Bc_jpsi_px(0), Bc_jpsi_py(0), Bc_jpsi_pz(0),
 
@@ -163,7 +164,12 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   isUnpairedMuonPF(0),
   isUnpairedMuonLoose(0),
 
-  hEventCounter(0)
+  hEventCounter(0),
+  hDimuon0TriggerCounter(0),
+  hJpsiTkTriggerCounter(0),
+  signalDecayPresent(0),
+  normalizationDecayPresent(0),
+  background1DecayPresent(0)
   
 {
    //now do what ever initialization is needed
@@ -219,27 +225,36 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesHandle;
   iEvent.getByToken(triggerPrescales_Label, triggerPrescalesHandle);
   
+  //////////////////////////////
+  // Trigger test
+  //////////////////////////////
   
-  //////////////////////////////
-  // Trigger test
-  //////////////////////////////
-  //if(!triggerResultsHandle.isValid())
-  //{
-  //  LogError("BcTo3MuAnalyzer") << "Missing Trigger collection" << std::endl;
-  //  return;
-  //}
+  if(!triggerResultsHandle.isValid())
+  {
+    LogError("BcTo3MuAnalyzer") << "Missing Trigger collection" << std::endl;
+    return;
+  }
 
-  //const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResultsHandle);
+  const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResultsHandle);
   //std::cout << triggerNames.size() << std::endl;
-  //for(unsigned int iT = 0; iT != triggerResultsHandle->size(); ++iT)
-  //{
-  //  std::cout << "Trigger " << triggerNames.triggerName(iT) << std::endl;
-  //  std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
-  //  std::cout << "Trigger prescale " << triggerPrescalesHandle->getPrescaleForIndex(iT) << std::endl;
-  //}
+  for(unsigned int iT = 0; iT != triggerResultsHandle->size(); ++iT)
+  {
+  //  if(triggerNames.triggerName(iT)== "HLT_Dimuon0_Jpsi3p5_Muon2_v4" || triggerNames.triggerName(iT) == "HLT_DoubleMu4_JpsiTrk_Displaced_v12")
+  //  {
+  //    std::cout << "Trigger " << triggerNames.triggerName(iT) << std::endl;
+  //    std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
+  //    std::cout << "Trigger prescale " << triggerPrescalesHandle->getPrescaleForIndex(iT) << std::endl;
+  //    std::cout << "Trigger number " << iT << std::endl;
+
+  //  }
+      
+    if(triggerNames.triggerName(iT) == "HLT_DoubleMu4_JpsiTrk_Displaced_v15") hJpsiTkTriggerCounter->Fill(triggerResultsHandle->accept(iT)*1.0);
+    if(triggerNames.triggerName(iT) == "HLT_Dimuon0_Jpsi3p5_Muon2_v5") hDimuon0TriggerCounter->Fill(triggerResultsHandle->accept(iT)*1.0);
+  }
   //////////////////////////////
   // Trigger test
   //////////////////////////////
+  
   
 
   //////////////////////////////
@@ -354,9 +369,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       isNuTau1Present = false; isTau1Present = false; isNuMuon2Present=false; isMuon2Present = false; isNuTau2Present = false;
       if(isSignalDecayPresent || isNormalizationDecayPresent || isBackground1DecayPresent) break;
     }
-    background1DecayPresent = isBackground1DecayPresent;
-    signalDecayPresent = isSignalDecayPresent;
-    normalizationDecayPresent = isNormalizationDecayPresent;
     // The nEventCounter histogram counts the total number of events with at least one Bc generated.
     if(isBcPresent) hEventCounter->Fill(1.);
     else hEventCounter->Fill(0.);
@@ -376,20 +388,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   //for(View<reco::VertexCollection>::const_iterator primVertex = thePrimaryVerticesHandle->begin(); primVertex!= thePrimaryVerticesHandle->end(); primVertex++)
   bestVertex = *(thePrimaryVerticesHandle->begin());
 
-  primaryVertexX = bestVertex.x();
-  primaryVertexY = bestVertex.y();
-  primaryVertexZ = bestVertex.z();
-
-  primaryVertexXError = bestVertex.covariance(0,0);
-  primaryVertexYError = bestVertex.covariance(1,1);
-  primaryVertexZError = bestVertex.covariance(2,2);
-  primaryVertexXYError = bestVertex.covariance(0,1);
-  primaryVertexXZError = bestVertex.covariance(0,2);
-  primaryVertexYZError = bestVertex.covariance(1,2);
-
-
-  
-  primaryVertexChi2 = ChiSquaredProbability((double)(bestVertex.chi2()),(double)(bestVertex.ndof()));
   nPrimaryVertices = thePrimaryVerticesHandle->size();
   nMuons = thePATMuonHandle->size(); 
 
@@ -407,7 +405,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   for(View<pat::Muon>::const_iterator patMuon1 = thePATMuonHandle->begin(); patMuon1 != thePATMuonHandle->end(); ++patMuon1)
   {
-
     for(View<pat::Muon>::const_iterator patMuon2 = patMuon1+1; patMuon2 != thePATMuonHandle->end(); ++patMuon2)
     {
       // Skipping the pairing of muons with itself
@@ -453,6 +450,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       // Trajectory state to calculate DCA for the two muons
 
+      
       ClosestApproachInRPhi closestApproachMuons;
       closestApproachMuons.calculate(trajectoryStateMuPositive, trajectoryStateMuNegative);
 
@@ -527,8 +525,16 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           dzMin = jpsiTrack.track().dz(primVertex->position());
         }
       }   
-      TVector3 primaryVertex(bestVertex.x(),bestVertex.y(),bestVertex.z());
 
+      TVector3 primaryVertex(bestVertex.x(),bestVertex.y(),0.);
+      TVector3 jpsiDecayVertexPosition(jpsiVertexFit_vertex->position().x(),
+            jpsiVertexFit_vertex->position().y(),
+            0.);
+      
+      double Lxy_tmp = jpsiDecayVertexPosition.Mag() - primaryVertex.Dot(jpsiDecayVertexPosition) / jpsiDecayVertexPosition.Mag();
+
+
+        
 
       //std::cout << boostToJpsiRestFrame.Mag() << std::endl;
       //TLorentzVector jpsiBoosted1 = jpsi4V;
@@ -628,7 +634,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         TLorentzVector pNuSystemCorrected4V = bcCorrected4V-(jpsi4V+unpairedMuon4V);
         //TLorentzVector pNuSystem4V = gen_b_p4-(gen_muonPositive_p4 + gen_muonNegative_p4+gen_unpairedMuon_p4);
 
-        TVector3 boostToBcRestFrame = -bc4V.BoostVector();
+        TVector3 boostToBcRestFrame = -bcCorrected4V.BoostVector();
         TLorentzVector unpairedMuonBoostedToBcRestFrame = unpairedMuon4V;
         unpairedMuonBoostedToBcRestFrame.Boost(boostToBcRestFrame);
         //std::cout << "bcUnpairedMuon.Mag: " << unpairedMuon4V.Mag() << std::endl;
@@ -645,9 +651,9 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if((unpairedMuon4V + jpsi4V).M()<0. || (unpairedMuon4V + jpsi4V).M()>10.) continue;
         
         nn_energyBcRestFrame->push_back(unpairedMuonBoostedToBcRestFrame.E());
-        nn_missMass2->push_back(pNuSystem4V.Mag2());
-        nn_q2->push_back(pLepton4V.Mag2());
-        nn_missPt->push_back(pNuSystem4V.Pt());
+        nn_missMass2->push_back(pNuSystemCorrected4V.Mag2());
+        nn_q2->push_back(pLeptonCorrected4V.Mag2());
+        nn_missPt->push_back(pNuSystemCorrected4V.Pt());
         nn_missMass2Corrected->push_back(pNuSystemCorrected4V.Mag2());
         nn_q2Corrected->push_back(pLeptonCorrected4V.Mag2());
         nn_missPtCorrected->push_back(pNuSystemCorrected4V.Pt());
@@ -736,6 +742,27 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             candidateMuNegative->currentState().globalMomentum().z());
 
         KinematicParameters kinematicParamUnpairedMu = candidateUnpairedMu->currentState().kinematicParameters();
+
+        // Filling the decays information
+        background1DecayPresent->push_back(isBackground1DecayPresent);
+        signalDecayPresent->push_back(isSignalDecayPresent);
+        normalizationDecayPresent->push_back(isNormalizationDecayPresent);
+
+        //Filling primary vertex information
+        primaryVertexX->push_back(bestVertex.x());
+        primaryVertexY->push_back(bestVertex.y());
+        primaryVertexZ->push_back(bestVertex.z());
+
+        primaryVertexXError->push_back(bestVertex.covariance(0,0));
+        primaryVertexYError->push_back(bestVertex.covariance(1,1));
+        primaryVertexZError->push_back(bestVertex.covariance(2,2));
+        primaryVertexXYError->push_back(bestVertex.covariance(0,1));
+        primaryVertexXZError->push_back(bestVertex.covariance(0,2));
+        primaryVertexYZError->push_back(bestVertex.covariance(1,2));
+
+
+        
+        primaryVertexChi2->push_back(ChiSquaredProbability((double)(bestVertex.chi2()),(double)(bestVertex.ndof())));
 
         // Filling trigger matching for the muons coming from the dimuon
         triggerMatchDimuon20->push_back(triggerMatchDimuon20_tmp);
@@ -830,6 +857,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Bc_jpsi_mu2_eta->push_back(kinematicParamMuNegative.momentum().eta());
   
         Bc_jpsi_chi2->push_back(jpsiVertexFit_vertex->chiSquared());
+        Bc_jpsi_Lxy->push_back(Lxy_tmp);
+        Bc_jpsi_Lxy->push_back(jpsiVertexFit_vertex->chiSquared());
         Bc_chi2->push_back(bcDecayVertex->chiSquared());
         Bc_jpsi_vertexProbability->push_back(jpsiProb_tmp);
         Bc_vertexProbability->push_back(bcProb_tmp);
@@ -869,7 +898,21 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       truthMatchUnpairedMu->push_back(-99);
     }
 
+    background1DecayPresent->push_back(-99);
+    signalDecayPresent->push_back(-99);
+    normalizationDecayPresent->push_back(-99);
      // Muon IDs and other properties
+    primaryVertexChi2->push_back(-99);
+    
+    primaryVertexX->push_back(-99);
+    primaryVertexXError->push_back(-99);
+    primaryVertexY->push_back(-99);
+    primaryVertexYError->push_back(-99);
+    primaryVertexZ->push_back(-99);
+    primaryVertexZError->push_back(-99);
+    primaryVertexXYError->push_back(-99);
+    primaryVertexXZError->push_back(-99);
+    primaryVertexYZError->push_back(-99);
 
     isMuon1Soft->push_back(-99);
     isMuon1Global->push_back(-99);
@@ -939,6 +982,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     
 
     Bc_jpsi_chi2->push_back(-99);
+    Bc_jpsi_Lxy->push_back(-99);
     Bc_jpsi_vertexProbability->push_back(-99);
     Bc_chi2->push_back(-99);
     Bc_vertexProbability->push_back(-99);
@@ -976,18 +1020,18 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   nMuons = 0;
   
   
-  nPrimaryVertices=0;
-  primaryVertexChi2=0;
+  nPrimaryVertices = 0;
+  primaryVertexChi2->clear();
   
-  primaryVertexX=0;
-  primaryVertexXError=0;
-  primaryVertexY=0;
-  primaryVertexYError=0;
-  primaryVertexZ=0;
-  primaryVertexZError=0;
-  primaryVertexXYError=0;
-  primaryVertexXZError=0;
-  primaryVertexYZError=0;
+  primaryVertexX->clear();
+  primaryVertexXError->clear();
+  primaryVertexY->clear();
+  primaryVertexYError->clear();
+  primaryVertexZ->clear();
+  primaryVertexZError->clear();
+  primaryVertexXYError->clear();
+  primaryVertexXZError->clear();
+  primaryVertexYZError->clear();
   
   muonPositiveChi2->clear();
   muonPositiveDxy->clear();
@@ -1041,9 +1085,9 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isUnpairedMuonTight->clear();
   isUnpairedMuonPF->clear();
   isUnpairedMuonLoose->clear();
-  signalDecayPresent=0;
-  normalizationDecayPresent=0;
-  background1DecayPresent=0;
+  signalDecayPresent->clear();
+  normalizationDecayPresent->clear();
+  background1DecayPresent->clear();
 
   Bc_charge->clear();
   Bc_mass->clear();
@@ -1100,6 +1144,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   nn_etaUnpairedMu->clear();
 
   Bc_jpsi_chi2->clear();
+  Bc_jpsi_Lxy->clear();
   Bc_jpsi_vertexProbability->clear();
 
   Bc_chi2->clear();
@@ -1135,6 +1180,8 @@ BcTo3MuAnalyzer::beginJob()
   edm::Service<TFileService> fs;
 
   hEventCounter = fs->make<TH1F>("nGeneratedEvents", "nGeneratedEvents", 10, 0., 10.);
+  hDimuon0TriggerCounter = fs->make<TH1F>("dimuon0TriggerCounter", "dimuon0TriggerCounter", 10, 0., 10.);
+  hJpsiTkTriggerCounter = fs->make<TH1F>("jpsiTkTriggerCounter", "jpsiTkTriggerCounter", 10, 0., 10.);
 
   tree_ = fs->make<TTree>("ntuple","Bc+ -> J/Psi mu+ ntuple");
 
@@ -1198,6 +1245,7 @@ BcTo3MuAnalyzer::beginJob()
   
   tree_->Branch("Bc_chi2",&Bc_chi2);
   tree_->Branch("Bc_jpsi_chi2",&Bc_jpsi_chi2);
+  tree_->Branch("Bc_jpsi_Lxy",&Bc_jpsi_Lxy);
   tree_->Branch("Bc_vertexProbability",&Bc_vertexProbability);
   tree_->Branch("Bc_jpsi_vertexProbability",&Bc_jpsi_vertexProbability);
 
@@ -1257,12 +1305,12 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("nn_phiUnpairedMu",&nn_phiUnpairedMu);
   tree_->Branch("nn_ptUnpairedMu",&nn_ptUnpairedMu);
   tree_->Branch("nn_etaUnpairedMu",&nn_etaUnpairedMu);
+  tree_->Branch("signalDecayPresent", &signalDecayPresent);
+  tree_->Branch("normalizationDecayPresent", &normalizationDecayPresent);
+  tree_->Branch("background1DecayPresent", &background1DecayPresent);
 
   if(isMC_)
   {
-    tree_->Branch("signalDecayPresent", &signalDecayPresent,"signalDecayPresent/I");
-    tree_->Branch("normalizationDecayPresent", &normalizationDecayPresent, "normalizationDecayPresent/I");
-    tree_->Branch("background1DecayPresent", &background1DecayPresent, "background1DecayPresent/I");
 
     tree_->Branch("truthMatchMuPositiveSim",&truthMatchMuPositiveSim);
     tree_->Branch("truthMatchMuNegativeSim",&truthMatchMuNegativeSim);
