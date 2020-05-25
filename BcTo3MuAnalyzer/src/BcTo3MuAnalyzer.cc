@@ -719,7 +719,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
             std::cout << "Trigger match JPsiTk " << triggerMatchJpsiTk_tmp  << std::endl;
             std::cout << "Trigger match JPsiTk muon1 " << muHLTMatches1_t2.size() << std::endl;
-            std::cout << "Trigger match JPsiTk muon1 " << muHLTMatches1_t2.size() << std::endl;
+            std::cout << "Trigger match JPsiTk muon2 " << muHLTMatches2_t2.size() << std::endl;
           }
         }
         

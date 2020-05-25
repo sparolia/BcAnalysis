@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
+#from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
 isSigChannel = True
 isBkg = False
 
@@ -30,16 +30,16 @@ outputRootFileName = 'RootupleBcTo3Mu.root'
 decayChannel = 'tau'
 if(isSigChannel):
   decayChannel == 'tau'
-  inputFilesList = files_jpsi_taunu
+  #inputFilesList = files_jpsi_taunu
   outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
 else:
   decayChannel == 'muon'
-  inputFilesList = files_jpsi_munu
+  #inputFilesList = files_jpsi_munu
   outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
 
 if(isBkg):
   decayChannel == 'jpsiX'
-  inputFilesList = files_jpsi_plusX
+  #inputFilesList = files_jpsi_plusX
   outputRootFileName = 'RootupleBcTo3Mu_bkg.root'
 
 process.source = cms.Source("PoolSource",
@@ -70,7 +70,21 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
-process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+#process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
+    dimuons = cms.InputTag('slimmedMuons'),
+    Trak = cms.InputTag('packedPFCandidates'),
+    prunedGenParticles = cms.InputTag('prunedGenParticles'),
+    packedGenParticles = cms.InputTag("packedGenParticles"),
+    genPUProtons = cms.InputTag("genPUProtons"),
+    primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
+    bslabel = cms.InputTag('offlineBeamSpot'),
+    triggerResults = cms.InputTag('TriggerResults', '','HLT'),
+    triggerPrescales = cms.InputTag('patTrigger'),
+    OnlyBest = cms.bool(False),
+    isMC = cms.bool(True),
+    OnlyGen = cms.bool(False),
+    )
 
 process.rootuple.isMC = True
 
