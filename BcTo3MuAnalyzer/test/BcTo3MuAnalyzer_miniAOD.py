@@ -69,22 +69,25 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     l1tResults = cms.InputTag(''),
     throw = cms.bool(False)
     )
+process.load("RJPsiAnalysis.BcTo3MuAnalyzer.slimmedMuonsTriggerMatcher_cfi")  
 
-#process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
-process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
-    dimuons = cms.InputTag('slimmedMuons'),
-    Trak = cms.InputTag('packedPFCandidates'),
-    prunedGenParticles = cms.InputTag('prunedGenParticles'),
-    packedGenParticles = cms.InputTag("packedGenParticles"),
-    genPUProtons = cms.InputTag("genPUProtons"),
-    primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
-    bslabel = cms.InputTag('offlineBeamSpot'),
-    triggerResults = cms.InputTag('TriggerResults', '','HLT'),
-    triggerPrescales = cms.InputTag('patTrigger'),
-    OnlyBest = cms.bool(False),
-    isMC = cms.bool(True),
-    OnlyGen = cms.bool(False),
-    )
+process.load("RJPsiAnalysis.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+
+process.rootuple.dimuons = cms.InputTag('slimmedMuonsWithTrigger')
+#process.rootuple = cms.EDAnalyzer("BcTo3MuAnalyzer",
+#    dimuons = cms.InputTag('slimmedMuons'),
+#    Trak = cms.InputTag('packedPFCandidates'),
+#    prunedGenParticles = cms.InputTag('prunedGenParticles'),
+#    packedGenParticles = cms.InputTag("packedGenParticles"),
+#    genPUProtons = cms.InputTag("genPUProtons"),
+#    primaryVertices = cms.InputTag('offlineSlimmedPrimaryVertices'),
+#    bslabel = cms.InputTag('offlineBeamSpot'),
+#    triggerResults = cms.InputTag('TriggerResults', '','HLT'),
+#    triggerPrescales = cms.InputTag('patTrigger'),
+#    OnlyBest = cms.bool(False),
+#    isMC = cms.bool(True),
+#    OnlyGen = cms.bool(False),
+#    )
 
 process.rootuple.isMC = True
 
@@ -93,5 +96,5 @@ process.TFileService = cms.Service('TFileService',
     fileName = cms.string(outputRootFileName)
     )
 
-#process.p = cms.Path(process.triggerSelection*process.slimmedMuonsWithTriggerSequence*process.rootuple)
-process.p = cms.Path(process.triggerSelection*process.rootuple)
+process.p = cms.Path(process.triggerSelection*process.slimmedMuonsWithTriggerSequence*process.rootuple)
+#process.p = cms.Path(process.triggerSelection*process.rootuple)
