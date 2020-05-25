@@ -5,10 +5,10 @@ config = Configuration()
 config.section_("General")
 #config.General.requestName = 'RJPsiNormalizationAnalysis'
 #config.General.workArea = 'RJPsiNormalizationAnalysis'
-#config.General.requestName = 'RJPsiSignalAnalysisCentralProd'
-#config.General.workArea = 'RJPsiSignalAnalysisCentralProd'
-config.General.requestName = 'RJPsiBackground1AnalysisBigSample'
-config.General.workArea = 'RJPsiBackground1AnalysisBigSample'
+config.General.requestName = 'RJPsiSignalAnalysis'
+config.General.workArea = 'RJPsiSignalAnalysis'
+#config.General.requestName = 'RJPsiBackground1AnalysisBigSample'
+#config.General.workArea = 'RJPsiBackground1AnalysisBigSample'
 config.General.transferLogs    = True
 config.General.transferOutputs = True
 
@@ -18,18 +18,18 @@ config.JobType.psetName    = '/afs/cern.ch/user/g/garamire/work/private/CMSPisa/
 
 config.section_("Data")
 config.Data.publication  = False
-config.Data.inputDBS = 'global'
+#config.Data.inputDBS = 'global'
+config.Data.inputDBS = 'phys03'
 #config.Data.splitting = 'Automatic'
 config.Data.splitting = 'FileBased'
-config.Data.unitsPerJob = 200
+config.Data.unitsPerJob = 10
 NJOBS = 26
 config.Data.totalUnits = config.Data.unitsPerJob * NJOBS
 #config.Data.userInputFiles = files_jpsi_munu 
-#config.Data.userInputFiles = files_jpsi_taunu 
+config.Data.userInputFiles = files_jpsi_taunu 
 #config.Data.userInputFiles = files_jpsi_plusX
 #config.Data.inputDataset = '/BcToJPsiTauNu_TuneCP5_13TeV-bcvegpy2-pythia8-evtgen/RunIIAutumn18MiniAOD-102X_upgrade2018_realistic_v15-v1/MINIAODSIM'
-config.Data.inputDataset = '/BJpsiX_MuMu_270819/cgalloni-Autumn18_10_2_9_miniAOD-39a089a8e7301f392b8b059e430f83ef/USER'
-config.Data.inputDBS = 'phys03'
+#config.Data.inputDataset = '/BJpsiX_MuMu_270819/cgalloni-Autumn18_10_2_9_miniAOD-39a089a8e7301f392b8b059e430f83ef/USER'
 #config.Data.outputPrimaryDataset = 'outputPrimaryDataset'
 config.Data.outLFNDirBase = '/store/user/garamire'
 config.Data.outputDatasetTag = 'outputDatasetTag'

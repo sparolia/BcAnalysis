@@ -1,7 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
-isSigChannel = True
-isBkg = False
+#from inputFilesList import files_jpsi_munu, files_jpsi_taunu
 
 process = cms.Process("Rootuple")
 
@@ -27,32 +25,13 @@ process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 inputFilesList = []
 outputRootFileName = 'RootupleBcTo3Mu.root'
-decayChannel = 'tau'
-if(isSigChannel):
-  decayChannel == 'tau'
-  inputFilesList = files_jpsi_taunu
-  outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
-else:
-  decayChannel == 'muon'
-  inputFilesList = files_jpsi_munu
-  outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
-
-if(isBkg):
-  decayChannel == 'jpsiX'
-  inputFilesList = files_jpsi_plusX
-  outputRootFileName = 'RootupleBcTo3Mu_bkg.root'
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     fileNames = cms.untracked.vstring(
         #files_jpsi_munu
         #files_jpsi_taunu
-        #'file:miniAOD_99.root' 
-        #'file:mini-aod-1829052.root'
-        #'/store/data/Run2018A/Charmonium/MINIAOD/17Sep2018-v1/90000/FBB6E58B-3F6C-004A-A1E3-21AB715F7D2B.root'
-        #'/store/user/cgalloni/BJpsiX_MuMu_270819/Autumn18_10_2_9_miniAOD/190827_143312/0000/miniAOD_327.root'
         #inputFilesList
-        'root://cms-xrd-global.cern.ch//store/mc/RunIIFall17MiniAODv2/BcToJPsiTauNu_TuneCP5_13TeV-bcvegpy2-pythia8-evtgen/MINIAODSIM/PU2017_12Apr2018_94X_mc2017_realistic_v14-v2/230000/FEE73ECF-9377-EA11-97F0-0023AEEEB703.root',
       )
     )
 
@@ -72,7 +51,7 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
 
 process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
 
-process.rootuple.isMC = True
+#process.rootuple.isSignalChannel = isSigChannel
 
 
 process.TFileService = cms.Service('TFileService',
