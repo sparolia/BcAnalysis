@@ -14,7 +14,7 @@ config.General.transferOutputs = True
 
 config.section_("JobType")
 config.JobType.pluginName  = 'Analysis'
-config.JobType.psetName    = '/afs/cern.ch/user/g/garamire/work/private/CMSPisa/RJPsiAnalysis/BcTo3MuReconstruction/CMSSW_10_2_9/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
+config.JobType.psetName    = '/afs/cern.ch/user/g/garamire/work/private/CMSPisa/RJPsiAnalysis/BcTo3MuReconstruction/CMSSW_9_4_17/src/RJPsiAnalyzers/BcTo3MuAnalyzer/test/gridConfigFiles/crab/BcTo3MuAnalyzer_miniAOD.py'
 
 config.section_("Data")
 config.Data.publication  = False

@@ -49,10 +49,9 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
+process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.slimmedMuonsTriggerMatcher_cfi")  
 process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
-
-#process.rootuple.isSignalChannel = isSigChannel
-
+process.rootuple.dimuons = cms.InputTag('slimmedMuonsWithTrigger')
 
 process.TFileService = cms.Service('TFileService',
     fileName = cms.string(outputRootFileName)
