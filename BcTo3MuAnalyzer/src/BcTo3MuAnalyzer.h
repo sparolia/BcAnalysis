@@ -89,56 +89,56 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
      
     // Primary vertex
     unsigned short nPrimaryVertices;
-    std::vector<float> *primaryVertexChi2;
-    std::vector<float> *primaryVertexX, *primaryVertexY, *primaryVertexZ;
-    std::vector<float> *primaryVertexXError, *primaryVertexYError, *primaryVertexZError;
-    std::vector<float> *primaryVertexXYError, *primaryVertexXZError, *primaryVertexYZError;
+    std::vector<double> *primaryVertexChi2;
+    std::vector<double> *primaryVertexX, *primaryVertexY, *primaryVertexZ;
+    std::vector<double> *primaryVertexXError, *primaryVertexYError, *primaryVertexZError;
+    std::vector<double> *primaryVertexXYError, *primaryVertexXZError, *primaryVertexYZError;
 
-    std::vector<float> *jpsiVertexX, *jpsiVertexY, *jpsiVertexZ;
-    std::vector<float> *jpsiVertexXError, *jpsiVertexYError, *jpsiVertexZError;
-    std::vector<float> *jpsiVertexXYError, *jpsiVertexXZError, *jpsiVertexYZError;
+    std::vector<double> *jpsiVertexX, *jpsiVertexY, *jpsiVertexZ;
+    std::vector<double> *jpsiVertexXError, *jpsiVertexYError, *jpsiVertexZError;
+    std::vector<double> *jpsiVertexXYError, *jpsiVertexXZError, *jpsiVertexYZError;
 
     // Bc particle
     unsigned int nBc;
-    std::vector<float> *Bc_chi2;
-    std::vector<float> *Bc_vertexProbability;
+    std::vector<double> *Bc_chi2;
+    std::vector<double> *Bc_vertexProbability;
 
-    std::vector<float> *Bc_mass, *Bc_pt, *Bc_px, *Bc_py, *Bc_pz, *Bc_eta, *Bc_phi, *Bc_ct;
+    std::vector<double> *Bc_mass, *Bc_pt, *Bc_px, *Bc_py, *Bc_pz, *Bc_eta, *Bc_phi, *Bc_ct;
     std::vector<short> *Bc_charge;
 
     // J/Psi particles coming from Bc
-    std::vector<float> *Bc_jpsi_chi2;
-    std::vector<float> *Bc_jpsi_Lxy;
-    std::vector<float> *jpsiVertexProbability;
+    std::vector<double> *Bc_jpsi_chi2;
+    std::vector<double> *Bc_jpsi_Lxy;
+    std::vector<double> *jpsiVertexProbability;
 
-    std::vector<float> *Bc_jpsi_mass,*Bc_jpsi_pt, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
-    std::vector<float> *Bc_jpsi_eta, *Bc_jpsi_phi;
-    std::vector<float> *bcVertexx, *bcVertexy, *bcVertexz;
+    std::vector<double> *Bc_jpsi_mass,*Bc_jpsi_pt, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
+    std::vector<double> *Bc_jpsi_eta, *Bc_jpsi_phi;
+    std::vector<double> *bcVertexx, *bcVertexy, *bcVertexz;
 
 
     // Muons coming from J/Psi
-    std::vector<float> *Bc_jpsi_mu1_pt, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
-    std::vector<float> *Bc_jpsi_mu2_pt, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
+    std::vector<double> *Bc_jpsi_mu1_pt, *Bc_jpsi_mu1_px, *Bc_jpsi_mu1_py, *Bc_jpsi_mu1_pz;
+    std::vector<double> *Bc_jpsi_mu2_pt, *Bc_jpsi_mu2_px, *Bc_jpsi_mu2_py, *Bc_jpsi_mu2_pz;
     std::vector<short> *Bc_jpsi_mu1_charge, *Bc_jpsi_mu2_charge;
-    std::vector<float> *Bc_jpsi_mu1_eta, *Bc_jpsi_mu2_eta;
-    std::vector<float> *Bc_jpsi_mu1_phi, *Bc_jpsi_mu2_phi;
+    std::vector<double> *Bc_jpsi_mu1_eta, *Bc_jpsi_mu2_eta;
+    std::vector<double> *Bc_jpsi_mu1_phi, *Bc_jpsi_mu2_phi;
 
     // Muon coming from Bc
     unsigned int nMuons;
-    std::vector<float> *Bc_mu_pt, *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
-    std::vector<float> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
+    std::vector<double> *Bc_mu_pt, *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
+    std::vector<double> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
     std::vector<short> *Bc_mu_charge;
-    std::vector<float> *Bc_mu_eta;
-    std::vector<float> *Bc_mu_eta_noFit;
-    std::vector<float> *Bc_mu_phi;
+    std::vector<double> *Bc_mu_eta;
+    std::vector<double> *Bc_mu_eta_noFit;
+    std::vector<double> *Bc_mu_phi;
     
     // Muon IDs and other properties
-    std::vector<float> *jpsi_mu1_Chi2, *jpsi_mu2_Chi2;
+    std::vector<double> *jpsi_mu1_Chi2, *jpsi_mu2_Chi2;
     std::vector<short> *jpsi_mu1_NumHits, *jpsi_mu1_NumPixelHits;
     std::vector<short> *jpsi_mu2_NumHits, *jpsi_mu2_NumPixelHits;
-    std::vector<float> *jpsi_mu1_Dxy, *jpsi_mu1_Dz;
-    std::vector<float> *jpsi_mu2_Dxy, *jpsi_mu2_Dz;
-    std::vector<float> *muonDCA;
+    std::vector<double> *jpsi_mu1_Dxy, *jpsi_mu1_Dz;
+    std::vector<double> *jpsi_mu2_Dxy, *jpsi_mu2_Dz;
+    std::vector<double> *muonDCA;
 
     std::vector<short> *isMu1Soft, *isMu2Soft;
     std::vector<short> *isMu1Global, *isMu2Global;
@@ -162,7 +162,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_jpsi_mu1_p4, gen_jpsi_mu2_p4, gen_mu_p4;
     TLorentzVector gen_munu_p4, gen_taunu1_p4, gen_taunu2_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx;
-    float gen_b_ct;
+    double gen_b_ct;
 
 };
 

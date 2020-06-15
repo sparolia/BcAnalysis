@@ -679,53 +679,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
 
-        const pat::TriggerObjectStandAloneCollection muHLTMatches1_t2 = muon1->triggerObjectMatchesByFilter("hltJpsiTkVertexFilter");
-        const pat::TriggerObjectStandAloneCollection muHLTMatches2_t2 = muon2->triggerObjectMatchesByFilter("hltJpsiTkVertexFilter");
-        //////////////////////////////
-        // Trigger test
-        //////////////////////////////
-        
-        if(!triggerResultsHandle.isValid())
-        {
-          LogError("BcTo3MuAnalyzer") << "Missing Trigger collection" << std::endl;
-          return;
-        }
-
-        const edm::TriggerNames& triggerNames = iEvent.triggerNames(*triggerResultsHandle);
-        //std::cout << triggerNames.size() << std::endl;
-        for(unsigned int iT = 0; iT != triggerResultsHandle->size(); ++iT)
-        {
-        //  if(triggerNames.triggerName(iT)== "HLT_Dimuon0_Jpsi3p5_Mu2_v4" || triggerNames.triggerName(iT) == "HLT_DoubleMu4_JpsiTrk_Displaced_v12")
-        //  {
-        //    std::cout << "Trigger " << triggerNames.triggerName(iT) << std::endl;
-        //    std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
-        //    std::cout << "Trigger prescale " << triggerPrescalesHandle->getPrescaleForIndex(iT) << std::endl;
-        //    std::cout << "Trigger number " << iT << std::endl;
-
-        //  }
-        //  std::cout << "Trigger " << triggerNames.triggerName(iT) << std::endl;
-
-            
-          //if(triggerNames.triggerName(iT) == "HLT_DoubleMu4_JpsiTrk_Displaced_v15") hJpsiTkTriggerCounter->Fill(triggerResultsHandle->accept(iT)*1.0);
-          if(triggerNames.triggerName(iT) == "HLT_Dimuon0_Jpsi3p5_Muon2_v4" && triggerResultsHandle->accept(iT) == 1.)
-          { 
-            std::cout << "Trigger: " << triggerResultsHandle->accept(iT)*1.0;
-            std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
-            std::cout << "Trigger match Dimuon0 " << triggerMatchDimuon0_tmp  << std::endl;
-          }
-          if(triggerNames.triggerName(iT) == "HLT_DoubleMu4_JpsiTrk_Displaced_v12" && triggerResultsHandle->accept(iT) ==1.)
-          { 
-            std::cout << "Trigger: " << triggerResultsHandle->accept(iT)*1.0;
-            std::cout << "Pass trigger " << triggerResultsHandle->accept(iT) << std::endl;
-            std::cout << "Trigger match JPsiTk " << triggerMatchJpsiTk_tmp  << std::endl;
-            std::cout << "Trigger match JPsiTk muon1 " << muHLTMatches1_t2.size() << std::endl;
-            std::cout << "Trigger match JPsiTk muon1 " << muHLTMatches1_t2.size() << std::endl;
-          }
-        }
-        
-        //////////////////////////////
-        // Trigger test
-        //////////////////////////////
         
         TVector3 reco_jpsi_mu1_p3, reco_jpsi_mu2_p3;
         reco_jpsi_mu1_p3.SetXYZ(globalTrackMu1->px(),globalTrackMu1->py(),globalTrackMu1->pz());
@@ -1242,7 +1195,7 @@ BcTo3MuAnalyzer::isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3)
   TVector3 sim_p3 = sim_p4.Vect();
   Double_t simRecoDeltaR = sim_p3.DeltaR(reco_p3);
   int match = 0;
-  if(simRecoDeltaR < 0.3) match = 1;
+  if(simRecoDeltaR < 0.1) match = 1;
   return match;
 }
 
@@ -1410,7 +1363,7 @@ BcTo3MuAnalyzer::beginJob()
     tree_->Branch("gen_taunu2_p4", "TLorentzVector", &gen_taunu2_p4);
     tree_->Branch("gen_b_vtx", "TVector3", &gen_b_vtx);
     tree_->Branch("gen_jpsi_vtx", "TVector3", &gen_jpsi_vtx);
-    tree_->Branch("gen_b_ct", &gen_b_ct, "gen_b_ct/F");
+    tree_->Branch("gen_b_ct", &gen_b_ct, "gen_b_ct/D");
   }
 }
 
