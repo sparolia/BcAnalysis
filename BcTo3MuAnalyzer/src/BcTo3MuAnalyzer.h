@@ -97,7 +97,16 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<double> *jpsiVertexX, *jpsiVertexY, *jpsiVertexZ;
     std::vector<double> *jpsiVertexXError, *jpsiVertexYError, *jpsiVertexZError;
     std::vector<double> *jpsiVertexXYError, *jpsiVertexXZError, *jpsiVertexYZError;
+    
+    //muon tracks error
+    std::vector<double> *mu1XError, *mu1YError, *mu1ZError;
+    std::vector<double> *mu1XYError, *mu1XZError, *mu1YZError;
 
+    std::vector<double> *mu2XError, *mu2YError, *mu2ZError;
+    std::vector<double> *mu2XYError, *mu2XZError, *mu2YZError;
+
+    std::vector<double> *muXError, *muYError, *muZError;
+    std::vector<double> *muXYError, *muXZError, *muYZError;
     // Bc particle
     unsigned int nBc;
     std::vector<double> *Bc_chi2;
@@ -133,9 +142,12 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<double> *Bc_mu_phi;
     
     // Muon IDs and other properties
+    std::vector<double> *mu_Chi2;
     std::vector<double> *jpsi_mu1_Chi2, *jpsi_mu2_Chi2;
+    std::vector<short> *mu_NumHits, *mu_NumPixelHits;
     std::vector<short> *jpsi_mu1_NumHits, *jpsi_mu1_NumPixelHits;
     std::vector<short> *jpsi_mu2_NumHits, *jpsi_mu2_NumPixelHits;
+    std::vector<double> *mu_Dxy, *mu_Dz;
     std::vector<double> *jpsi_mu1_Dxy, *jpsi_mu1_Dz;
     std::vector<double> *jpsi_mu2_Dxy, *jpsi_mu2_Dz;
     std::vector<double> *muonDCA;
@@ -146,6 +158,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isMu1Tight, *isMu2Tight;
     std::vector<short> *isMu1PF, *isMu2PF;
     std::vector<short> *isMu1Loose, *isMu2Loose;
+    std::vector<short> *isMu1Medium, *isMu2Medium;
+    std::vector<short> *isMu1HighPtMuon, *isMu2HighPtMuon;
 
     std::vector<short> *isMuSoft;
     std::vector<short> *isMuGlobal;
@@ -153,6 +167,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isMuTight;
     std::vector<short> *isMuPF;
     std::vector<short> *isMuLoose;
+    std::vector<short> *isMuMedium;
+    std::vector<short> *isMuHighPtMuon;
     TH1F *hEventCounter;
     TH1F *hDimuon0TriggerCounter;
     TH1F *hJpsiTkTriggerCounter;
@@ -160,8 +176,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<int> *normalizationDecayPresent;
     std::vector<int> *background1DecayPresent;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_jpsi_mu1_p4, gen_jpsi_mu2_p4, gen_mu_p4;
-    TLorentzVector gen_munu_p4, gen_taunu1_p4, gen_taunu2_p4;
-    TVector3 gen_b_vtx, gen_jpsi_vtx;
+    TLorentzVector gen_munu_p4, gen_tau_p4, gen_taunu1_p4, gen_taunu2_p4;
+    TVector3 gen_b_vtx, gen_jpsi_vtx, gen_nutau_vtx;
     double gen_b_ct;
 
 };

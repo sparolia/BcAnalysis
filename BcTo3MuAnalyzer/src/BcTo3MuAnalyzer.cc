@@ -27,6 +27,7 @@
 #include "RecoVertex/KinematicFit/interface/TwoTrackMassKinematicConstraint.h"
 
 
+
 // (Default) user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
 #include "FWCore/Framework/interface/EDAnalyzer.h"
@@ -59,6 +60,15 @@
 #include "TrackingTools/Records/interface/TransientTrackRecord.h"
 #include "TrackingTools/Records/interface/TrackingComponentsRecord.h"
 
+//
+#include "Math/GenVector/VectorUtil.h"
+#include "Math/GenVector/PxPyPzE4D.h"
+#include "DataFormats/GeometryVector/interface/GlobalVector.h"
+#include "RecoTauTag/ImpactParameter/interface/ImpactParameterAlgorithm.h"
+#include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
+#include "RecoBTag/BTagTools/interface/SignedImpactParameter3D.h"
+#include "RecoBTag/BTagTools/interface/SignedTransverseImpactParameter.h"
+#include "TrackingTools/IPTools/interface/IPTools.h"
 
 
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -66,6 +76,8 @@
 #include "CommonTools/Statistics/interface/ChiSquaredProbability.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
+
+
 //
 // constants, enums and typedefs
 //
@@ -117,6 +129,15 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   jpsiVertexXError(0), jpsiVertexYError(0), jpsiVertexZError(0),
   jpsiVertexXYError(0), jpsiVertexXZError(0), jpsiVertexYZError(0),
 
+  mu1XError(0), mu1YError(0), mu1ZError(0),
+  mu1XYError(0), mu1XZError(0), mu1YZError(0),
+
+  mu2XError(0), mu2YError(0), mu2ZError(0),
+  mu2XYError(0), mu2XZError(0), mu2YZError(0),
+
+  muXError(0), muYError(0), muZError(0),
+  muXYError(0), muXZError(0), muYZError(0),
+
   nBc(0),
   Bc_chi2(0),
   Bc_vertexProbability(0),
@@ -144,9 +165,12 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   Bc_mu_phi(0),
 
   // Muon IDs and other properties
+  mu_Chi2(0),
   jpsi_mu1_Chi2(0), jpsi_mu2_Chi2(0),
+  mu_NumHits(0), mu_NumPixelHits(0),
   jpsi_mu1_NumHits(0), jpsi_mu1_NumPixelHits(0),
   jpsi_mu2_NumHits(0), jpsi_mu2_NumPixelHits(0),
+  mu_Dxy(0), mu_Dz(0),
   jpsi_mu1_Dxy(0), jpsi_mu1_Dz(0),
   jpsi_mu2_Dxy(0), jpsi_mu2_Dz(0),
   muonDCA(0),
@@ -158,6 +182,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   isMu1Tight(0), isMu2Tight(0),
   isMu1PF(0), isMu2PF(0),
   isMu1Loose(0), isMu2Loose(0),
+  isMu1Medium(0), isMu2Medium(0),
+  isMu1HighPtMuon(0), isMu2HighPtMuon(0),
 
   isMuSoft(0),
   isMuGlobal(0),
@@ -165,6 +191,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   isMuTight(0),
   isMuPF(0),
   isMuLoose(0),
+  isMuMedium(0),
+  isMuHighPtMuon(0),
 
   hEventCounter(0),
   hDimuon0TriggerCounter(0),
@@ -280,10 +308,12 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_jpsi_mu2_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_mu_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_munu_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  gen_tau_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_taunu1_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_taunu2_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_b_vtx.SetXYZ(0.,0.,0.);
   gen_jpsi_vtx.SetXYZ(0.,0.,0.);
+  gen_nutau_vtx.SetXYZ(0.,0.,0.);
   gen_b_ct = -99;
   
 
@@ -335,6 +365,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               const reco::Candidate *jGrandDaughter = iDaughter->daughter(j);
               if(jGrandDaughter->pdgId() == -13)
               {
+                gen_jpsi_vtx.SetXYZ(jGrandDaughter->vx(), jGrandDaughter->vy(), jGrandDaughter->vz());
                 isMuonPositive1Present = true;
                 gen_jpsi_mu1_p4.SetPtEtaPhiM(jGrandDaughter->pt(),jGrandDaughter->eta(), jGrandDaughter->phi(), jGrandDaughter->mass());
               }
@@ -361,6 +392,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
             else if(abs(iDaughter->pdgId()) == 15 )
             {
               isTau1Present = true;
+              gen_tau_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
               for(size_t k = 0; k<iDaughter->numberOfDaughters(); ++k)
               { 
                 const reco::Candidate *kGrandDaughter = iDaughter->daughter(k);
@@ -377,6 +409,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
                 if(abs(kGrandDaughter->pdgId()) == 16) 
                 {
                   isNuTau2Present = true; 
+                  gen_nutau_vtx.SetXYZ(kGrandDaughter->vx(), kGrandDaughter->vy(), kGrandDaughter->vz());
                   gen_taunu2_p4.SetPtEtaPhiM(kGrandDaughter->pt(),kGrandDaughter->eta(), kGrandDaughter->phi(), kGrandDaughter->mass());
                 }
               }
@@ -405,6 +438,13 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     // The nEventCounter histogram counts the total number of events with at least one Bc generated.
     if(isBcPresent) hEventCounter->Fill(1.);
     else hEventCounter->Fill(0.);
+    //if(isSignalDecayPresent) 
+    //{
+      //std::cout << "Diff vertex: " << (gen_jpsi_vtx - gen_nutau_vtx).Mag() << std::endl;
+      //std::cout << "bc vertex: " << gen_b_vtx.Mag() << std::endl;
+      //std::cout << "jpsi vertex: " << gen_jpsi_vtx.Mag() << std::endl;
+      //std::cout << "tau vertex: " << gen_nutau_vtx.Mag() << std::endl;
+    //}
   }
   
   //////////////////////////////
@@ -591,6 +631,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if(patMu1==patMuon3) continue;
         if(patMu2==patMuon3) continue;
         
+        
+        //std::cout << "mu1 cov: " << patMu1->track()->covariance() << std::endl;
         reco::TrackRef globalTrackMu;
         globalTrackMu = patMuon3->track();
 
@@ -600,7 +642,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         if(!(globalTrackMu->quality(reco::TrackBase::highPurity))) continue;
         
 
-        reco::TransientTrack transientTrackMu((*theBuilder).build(globalTrackMu));
+        //const reco::TransientTrack transientTrackMu((*theBuilder).build(globalTrackMu));
+        const reco::TransientTrack transientTrackMu = (theBuilder->build(globalTrackMu));
         //FreeTrajectoryState trajectoryStateMuExtra = transientTrackMuExtra.impactPointTSCP().theState();
 
         if(!transientTrackMu.impactPointTSCP().isValid()) continue;
@@ -632,7 +675,39 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         // Prepare variables for the NN
 
         TLorentzVector jpsi4V;
+        //template <typename T> std::string type_name();
         auto jpsiGlobalMomentum = jpsiVertexFit->currentState().globalMomentum();
+        // computing 3d impact parameter
+
+        const GlobalVector jpsiDirection(jpsiGlobalMomentum.x(), jpsiGlobalMomentum.y(), jpsiGlobalMomentum.z());
+        reco::Vertex::Point jpsiVertexPosition(jpsiDecayVertex->position().x(), jpsiDecayVertex->position().y(), jpsiDecayVertex->position().z());
+        const double err00 = jpsiDecayVertex->error().matrix()(0,0);
+        const double err11 = jpsiDecayVertex->error().matrix()(1,1);
+        const double err22 = jpsiDecayVertex->error().matrix()(2,2);
+        const double err01 = jpsiDecayVertex->error().matrix()(0,1);
+        const double err02 = jpsiDecayVertex->error().matrix()(0,2);
+        const double err12 = jpsiDecayVertex->error().matrix()(1,2);
+        reco::Vertex::Error jpsiVertexError;
+
+        jpsiVertexError(0,0) = err00;
+        jpsiVertexError(0,1) = err01;
+        jpsiVertexError(0,2) = err02;
+        jpsiVertexError(1,0) = err01;
+        jpsiVertexError(1,1) = err11;
+        jpsiVertexError(1,2) = err12;
+        jpsiVertexError(2,0) = err02;
+        jpsiVertexError(2,1) = err12;
+        jpsiVertexError(2,2) = err22;
+
+        const reco::Vertex jpsiVertex(jpsiVertexPosition, jpsiVertexError, jpsiDecayVertex->chiSquared(), jpsiDecayVertex->degreesOfFreedom(), 2);
+        std::cout << typeid(jpsiVertex).name() << std::endl;
+
+        std::pair<bool,Measurement1D> result = IPTools::signedImpactParameter3D(*(&transientTrackMu),jpsiDirection,jpsiVertex);
+        //std::cout << typeid(signed_ip3D.apply(transientTrackMu,jpsiDirection,bestVertex).second.value()).name() << std::endl;
+        //std::cout << signed_ip3D.apply(transientTrackMu1,jpsiGlobalMomentum,jpsiVertex).first << std::endl;
+        //Measurement1D ip3D = signed_ip3D.apply(transientTrackMu,jpsiDirection,jpsiVertex).second;
+        //Measurement1D ip3D = signed_ip3D.apply(transientTrackMu,jpsiGlobalMomentum,bestVertex).second;
+        std::cout << result.first << std::endl;
 
         jpsi4V.SetPtEtaPhiM(jpsiGlobalMomentum.perp(), jpsiGlobalMomentum.eta(), jpsiGlobalMomentum.phi(), jpsiVertexFit->currentState().mass());
 
@@ -679,6 +754,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
 
 
+
         
         TVector3 reco_jpsi_mu1_p3, reco_jpsi_mu2_p3;
         reco_jpsi_mu1_p3.SetXYZ(globalTrackMu1->px(),globalTrackMu1->py(),globalTrackMu1->pz());
@@ -712,6 +788,9 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           truthMatchMuSim->push_back(truthMatchMuSim_tmp);
           truthMatchMu->push_back(truthMatchMu_tmp);
         }
+
+
+        
 
         // Get children from final Bc fit
         vertexFitTree->movePointerToTheFirstChild();
@@ -770,6 +849,28 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         jpsiVertexXZError->push_back(jpsiDecayVertex->error().matrix()(0,2));
         jpsiVertexYZError->push_back(jpsiDecayVertex->error().matrix()(1,1));
 
+        // muon tracks errors 
+        //std::cout << "mu1 cov: " << patMu1->track()->covariance() << std::endl;
+        mu1XError->push_back(patMu1->track()->covariance(0,0));
+        mu1YError->push_back(patMu1->track()->covariance(1,1));
+        mu1ZError->push_back(patMu1->track()->covariance(2,2));
+        mu1XYError->push_back(patMu1->track()->covariance(0,1));
+        mu1XZError->push_back(patMu1->track()->covariance(0,2));
+        mu1YZError->push_back(patMu1->track()->covariance(1,2));
+
+        mu2XError->push_back(patMu2->track()->covariance(0,0));
+        mu2YError->push_back(patMu2->track()->covariance(1,1));
+        mu2ZError->push_back(patMu2->track()->covariance(2,2));
+        mu2XYError->push_back(patMu2->track()->covariance(0,1));
+        mu2XZError->push_back(patMu2->track()->covariance(0,2));
+        mu2YZError->push_back(patMu2->track()->covariance(1,2));
+
+        muXError->push_back(patMuon3->track()->covariance(0,0));
+        muYError->push_back(patMuon3->track()->covariance(1,1));
+        muZError->push_back(patMuon3->track()->covariance(2,2));
+        muXYError->push_back(patMuon3->track()->covariance(0,1));
+        muXZError->push_back(patMuon3->track()->covariance(0,2));
+        muYZError->push_back(patMuon3->track()->covariance(1,2));
         // Filling trigger matching for the muons coming from the dimuon
         triggerMatchDimuon20->push_back(triggerMatchDimuon20_tmp);
         triggerMatchDimuon25->push_back(triggerMatchDimuon25_tmp);
@@ -795,6 +896,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         isMu1Tight->push_back(patMu1->isTightMuon(bestVertex));
         isMu1PF->push_back(patMu1->isPFMuon());
         isMu1Loose->push_back(muon::isLooseMuon(*patMu1));
+        isMu1Medium->push_back(muon::isMediumMuon(*patMu1));
+        isMu1HighPtMuon->push_back(patMu1->isHighPtMuon(bestVertex));
     
         isMu2Soft->push_back(patMu2->isSoftMuon(bestVertex));
         isMu2Global->push_back(patMu2->isGlobalMuon());
@@ -802,19 +905,28 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         isMu2Tight->push_back(patMu2->isTightMuon(bestVertex));
         isMu2PF->push_back(patMu2->isPFMuon());
         isMu2Loose->push_back(muon::isLooseMuon(*patMu2));
+        isMu2Medium->push_back(muon::isMediumMuon(*patMu2));
+        isMu2HighPtMuon->push_back(patMu2->isHighPtMuon(bestVertex));
+        
+        mu_Chi2->push_back(globalTrackMu->normalizedChi2());
+        mu_NumHits->push_back(globalTrackMu->numberOfValidHits());
+        mu_NumPixelHits->push_back(globalTrackMu->hitPattern().numberOfValidPixelHits());
+        //mu_Dxy->push_back(globalTrackMu->dxy(jpsiDecayVertex->position()));
+        //mu_Dz->push_back(globalTrackMu->dz(jpsiDecayVertex->position()));
     
         jpsi_mu1_Chi2->push_back(globalTrackMu1->normalizedChi2());
         jpsi_mu1_NumHits->push_back(globalTrackMu1->numberOfValidHits());
         jpsi_mu1_NumPixelHits->push_back(globalTrackMu1->hitPattern().numberOfValidPixelHits());
-        jpsi_mu1_Dxy->push_back(globalTrackMu1->dxy(bestVertex.position()));
-        jpsi_mu1_Dz->push_back(globalTrackMu1->dz(bestVertex.position()));
+        //jpsi_mu1_Dxy->push_back(globalTrackMu1->dxy(jpsiDecayVertex->position()));
+        //jpsi_mu1_Dz->push_back(globalTrackMu1->dz(jpsiDecayVertex->position()));
+        //std::cout << globalTrackMu1->phi(bestVertex.position()) << std::endl;
     
          
         jpsi_mu2_Chi2->push_back(globalTrackMu2->normalizedChi2());
         jpsi_mu2_NumHits->push_back(globalTrackMu2->numberOfValidHits());
         jpsi_mu2_NumPixelHits->push_back(globalTrackMu2->hitPattern().numberOfValidPixelHits());
-        jpsi_mu2_Dxy->push_back(globalTrackMu2->dxy(bestVertex.position()));
-        jpsi_mu2_Dz->push_back(globalTrackMu2->dz(bestVertex.position()));
+        //jpsi_mu2_Dxy->push_back(globalTrackMu2->dxy(jpsiDecayVertex->position()));
+        //jpsi_mu2_Dz->push_back(globalTrackMu2->dz(jpsiDecayVertex->position()));
         muonDCA->push_back(dca);
 
         // Filling candidates variables now.
@@ -886,6 +998,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         isMuTight->push_back(patMuon3->isTightMuon(bestVertex));
         isMuPF->push_back(patMuon3->isPFMuon());
         isMuLoose->push_back(muon::isLooseMuon(*patMuon3));
+        isMuMedium->push_back(muon::isMediumMuon(*patMuon3));
+        isMuHighPtMuon->push_back(patMuon3->isHighPtMuon(bestVertex));
 
         nBc++;
       }
@@ -941,12 +1055,35 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     jpsiVertexXZError->push_back(-99);
     jpsiVertexYZError->push_back(-99);
 
+    mu1XError->push_back(-99);
+    mu1YError->push_back(-99);
+    mu1ZError->push_back(-99);
+    mu1XYError->push_back(-99);
+    mu1XZError->push_back(-99);
+    mu1YZError->push_back(-99);
+
+    mu2XError->push_back(-99);
+    mu2YError->push_back(-99);
+    mu2ZError->push_back(-99);
+    mu2XYError->push_back(-99);
+    mu2XZError->push_back(-99);
+    mu2YZError->push_back(-99);
+    
+    muXError->push_back(-99);
+    muYError->push_back(-99);
+    muZError->push_back(-99);
+    muXYError->push_back(-99);
+    muXZError->push_back(-99);
+    muYZError->push_back(-99);
+
     isMu1Soft->push_back(-99);
     isMu1Global->push_back(-99);
     isMu1Tracker->push_back(-99);
     isMu1Tight->push_back(-99);
     isMu1PF->push_back(-99);
     isMu1Loose->push_back(-99);
+    isMu1Medium->push_back(-99);
+    isMu1HighPtMuon->push_back(-99);
 
     isMu2Soft->push_back(-99);
     isMu2Global->push_back(-99);
@@ -954,6 +1091,14 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     isMu2Tight->push_back(-99);
     isMu2PF->push_back(-99);
     isMu2Loose->push_back(-99);
+    isMu2Medium->push_back(-99);
+    isMu2HighPtMuon->push_back(-99);
+
+    mu_Chi2->push_back(-99);
+    mu_NumHits->push_back(-99);
+    mu_NumPixelHits->push_back(-99);
+    mu_Dxy->push_back(-99);
+    mu_Dz->push_back(-99);
 
     jpsi_mu1_Chi2->push_back(-99);
     jpsi_mu1_NumHits->push_back(-99);
@@ -1031,6 +1176,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     isMuTight->push_back(-99);
     isMuPF->push_back(-99);
     isMuLoose->push_back(-99);
+    isMuMedium->push_back(-99);
+    isMuHighPtMuon->push_back(-99);
   }
   bool saveTree = true;
   if(nBc > 0 && saveTree)
@@ -1064,6 +1211,33 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   jpsiVertexXYError->clear();
   jpsiVertexXZError->clear();
   jpsiVertexYZError->clear();
+
+  mu1XError->clear();
+  mu1YError->clear();
+  mu1ZError->clear();
+  mu1XYError->clear();
+  mu1XZError->clear();
+  mu1YZError->clear();
+  
+  mu2XError->clear();
+  mu2YError->clear();
+  mu2ZError->clear();
+  mu2XYError->clear();
+  mu2XZError->clear();
+  mu2YZError->clear();
+  
+  muXError->clear();
+  muYError->clear();
+  muZError->clear();
+  muXYError->clear();
+  muXZError->clear();
+  muYZError->clear();
+
+  mu_Chi2->clear();
+  mu_Dxy->clear();
+  mu_Dz->clear();
+  mu_NumHits->clear();
+  mu_NumPixelHits->clear();
  
   jpsi_mu1_Chi2->clear();
   jpsi_mu1_Dxy->clear();
@@ -1103,6 +1277,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isMu1Tight->clear();
   isMu1PF->clear();
   isMu1Loose->clear();
+  isMu1Medium->clear();
+  isMu1HighPtMuon->clear();
   
   isMu2Soft->clear();
   isMu2Global->clear();
@@ -1110,6 +1286,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isMu2Tight->clear();
   isMu2PF->clear();
   isMu2Loose->clear();
+  isMu2Medium->clear();
+  isMu2HighPtMuon->clear();
 
   isMuSoft->clear();
   isMuGlobal->clear();
@@ -1117,6 +1295,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   isMuTight->clear();
   isMuPF->clear();
   isMuLoose->clear();
+  isMuMedium->clear();
+  isMuHighPtMuon->clear();
   signalDecayPresent->clear();
   normalizationDecayPresent->clear();
   background1DecayPresent->clear();
@@ -1189,6 +1369,14 @@ BcTo3MuAnalyzer::GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_
   Double_t lxy = deltaVtx.Dot(b_p3)/b_p3.Mag();
   return lxy*b_p4.M()/b_p3.Mag();
 }
+//double
+//BcTo3MuAnalyzer::GetDCA(TLorentzVector b_p4, TVector3 vtx1, TVector3 vtx2)
+//{
+//  TVector3 deltaVtx = jpsi_vtx - b_vtx;
+//  TVector3 b_p3 = b_p4.Vect();
+//  Double_t lxy = deltaVtx.Dot(b_p3)/b_p3.Mag();
+//  return lxy*b_p4.M()/b_p3.Mag();
+//}
 short
 BcTo3MuAnalyzer::isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3)
 {
@@ -1242,6 +1430,27 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("jpsiVertexYZError",&jpsiVertexYZError);
   tree_->Branch("jpsiVertexXZError",&jpsiVertexXZError);
   tree_->Branch("jpsiVertexProbability",&jpsiVertexProbability);
+
+  tree_->Branch("mu1XError",&mu1XError);
+  tree_->Branch("mu1YError",&mu1YError);
+  tree_->Branch("mu1ZError",&mu1ZError);
+  tree_->Branch("mu1XYError",&mu1XYError);
+  tree_->Branch("mu1YZError",&mu1YZError);
+  tree_->Branch("mu1XZError",&mu1XZError);
+
+  tree_->Branch("mu2XError",&mu2XError);
+  tree_->Branch("mu2YError",&mu2YError);
+  tree_->Branch("mu2ZError",&mu2ZError);
+  tree_->Branch("mu2XYError",&mu2XYError);
+  tree_->Branch("mu2YZError",&mu2YZError);
+  tree_->Branch("mu2XZError",&mu2XZError);
+
+  tree_->Branch("muXError",&muXError);
+  tree_->Branch("muYError",&muYError);
+  tree_->Branch("muZError",&muZError);
+  tree_->Branch("muXYError",&muXYError);
+  tree_->Branch("muYZError",&muYZError);
+  tree_->Branch("muXZError",&muXZError);
 
   tree_->Branch("bcVertexx",&bcVertexx);
   tree_->Branch("bcVertexy",&bcVertexy);
@@ -1308,6 +1517,11 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("jpsi_mu1_NumPixelHits",&jpsi_mu1_NumPixelHits);
   tree_->Branch("jpsi_mu1_Dxy",&jpsi_mu1_Dxy);
   tree_->Branch("jpsi_mu1_Dz",&jpsi_mu1_Dz);
+  tree_->Branch("mu_Chi2",&mu_Chi2);
+  tree_->Branch("mu_NumHits",&mu_NumHits);
+  tree_->Branch("mu_NumPixelHits",&mu_NumPixelHits);
+  tree_->Branch("mu_Dxy",&mu_Dxy);
+  tree_->Branch("mu_Dz",&mu_Dz);
   tree_->Branch("muonDCA",&muonDCA);
   
   tree_->Branch("triggerMatchJpsi",&triggerMatchJpsi);
@@ -1324,6 +1538,8 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("isMu1Tight",&isMu1Tight);
   tree_->Branch("isMu1PF",&isMu1PF);
   tree_->Branch("isMu1Loose",&isMu1Loose);
+  tree_->Branch("isMu1Medium",&isMu1Medium);
+  tree_->Branch("isMu1HighPtMuon",&isMu1HighPtMuon);
 
   tree_->Branch("isMu2Soft",&isMu2Soft);
   tree_->Branch("isMu2Global",&isMu2Global);
@@ -1331,6 +1547,8 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("isMu2Tight",&isMu2Tight);
   tree_->Branch("isMu2PF",&isMu2PF);
   tree_->Branch("isMu2Loose",&isMu2Loose);
+  tree_->Branch("isMu2Medium",&isMu2Medium);
+  tree_->Branch("isMu2HighPtMuon",&isMu2HighPtMuon);
   
   tree_->Branch("isMuSoft",&isMuSoft);
   tree_->Branch("isMuGlobal",&isMuGlobal);
@@ -1338,6 +1556,8 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("isMuTight",&isMuTight);
   tree_->Branch("isMuPF",&isMuPF);
   tree_->Branch("isMuLoose",&isMuLoose);
+  tree_->Branch("isMuMedium",&isMuMedium);
+  tree_->Branch("isMuHighPtMuon",&isMuHighPtMuon);
 
   tree_->Branch("signalDecayPresent", &signalDecayPresent);
   tree_->Branch("normalizationDecayPresent", &normalizationDecayPresent);
@@ -1359,10 +1579,12 @@ BcTo3MuAnalyzer::beginJob()
     tree_->Branch("gen_jpsi_mu2_p4", "TLorentzVector", &gen_jpsi_mu2_p4);
     tree_->Branch("gen_mu_p4", "TLorentzVector", &gen_mu_p4);
     tree_->Branch("gen_munu_p4", "TLorentzVector", &gen_munu_p4);
+    tree_->Branch("gen_tau_p4", "TLorentzVector", &gen_tau_p4);
     tree_->Branch("gen_taunu1_p4", "TLorentzVector", &gen_taunu1_p4);
     tree_->Branch("gen_taunu2_p4", "TLorentzVector", &gen_taunu2_p4);
     tree_->Branch("gen_b_vtx", "TVector3", &gen_b_vtx);
     tree_->Branch("gen_jpsi_vtx", "TVector3", &gen_jpsi_vtx);
+    tree_->Branch("gen_nutau_vtx", "TVector3", &gen_nutau_vtx);
     tree_->Branch("gen_b_ct", &gen_b_ct, "gen_b_ct/D");
   }
 }
@@ -1393,3 +1615,4 @@ BcTo3MuAnalyzer::fillDescriptions(edm::ConfigurationDescriptions& descriptions) 
 
 //define this as a plug-in
 DEFINE_FWK_MODULE(BcTo3MuAnalyzer);
+

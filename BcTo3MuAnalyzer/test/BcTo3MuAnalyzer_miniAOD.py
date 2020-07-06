@@ -22,7 +22,8 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
+#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(100))
 
 
 inputFilesList = []
@@ -31,7 +32,7 @@ decayChannel = 'tau'
 if(isSigChannel):
   decayChannel == 'tau'
   inputFilesList = files_jpsi_taunu
-  outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
+  outputRootFileName = 'RootupleBcTo3Mu_pionChannel.root'
 else:
   decayChannel == 'muon'
   inputFilesList = files_jpsi_munu
@@ -47,6 +48,7 @@ process.source = cms.Source("PoolSource",
     fileNames = cms.untracked.vstring(
         #files_jpsi_munu
         #files_jpsi_taunu
+        #'/store/mc/RunIIAutumn18MiniAOD/BcToJpsiMuNu_JpsiToMuMu_13TeV-TuneCP5-evtgen-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/230000/A9DE66AD-7301-004C-8D87-3FBE21CA63BD.root'
         'file:miniAOD_99.root' 
         #'file:mini-aod-1829052.root'
         #'/store/data/Run2018A/Charmonium/MINIAOD/17Sep2018-v1/90000/FBB6E58B-3F6C-004A-A1E3-21AB715F7D2B.root'
