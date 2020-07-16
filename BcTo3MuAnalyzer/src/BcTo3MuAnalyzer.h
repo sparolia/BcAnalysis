@@ -140,6 +140,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<double> *Bc_mu_eta;
     std::vector<double> *Bc_mu_eta_noFit;
     std::vector<double> *Bc_mu_phi;
+    std::vector<double> *Bc_mu_IP3D;
+    std::vector<double> *Bc_mu_IP3D_error;
     
     // Muon IDs and other properties
     std::vector<double> *mu_Chi2;
@@ -176,7 +178,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<int> *normalizationDecayPresent;
     std::vector<int> *background1DecayPresent;
     TLorentzVector gen_b_p4, gen_jpsi_p4, gen_jpsi_mu1_p4, gen_jpsi_mu2_p4, gen_mu_p4;
-    TLorentzVector gen_munu_p4, gen_tau_p4, gen_taunu1_p4, gen_taunu2_p4;
+    TLorentzVector gen_munu_p4, gen_tau_p4, gen_taunu1_p4, gen_taunu2_p4, gen_pion_p4;
     TVector3 gen_b_vtx, gen_jpsi_vtx, gen_nutau_vtx;
     double gen_b_ct;
 

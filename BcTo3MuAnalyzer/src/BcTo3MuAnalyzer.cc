@@ -66,9 +66,9 @@
 #include "DataFormats/GeometryVector/interface/GlobalVector.h"
 #include "RecoTauTag/ImpactParameter/interface/ImpactParameterAlgorithm.h"
 #include "DataFormats/GeometryCommonDetAlgo/interface/Measurement1D.h"
-#include "RecoBTag/BTagTools/interface/SignedImpactParameter3D.h"
-#include "RecoBTag/BTagTools/interface/SignedTransverseImpactParameter.h"
-#include "TrackingTools/IPTools/interface/IPTools.h"
+#include <RecoBTag/BTagTools/interface/SignedImpactParameter3D.h>
+//#include <RecoBTag/BTagTools/interface/SignedTransverseImpactParameter.h>
+//#include "TrackingTools/IPTools/interface/IPTools.h"
 
 
 #include "FWCore/Common/interface/TriggerNames.h"
@@ -163,6 +163,8 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   Bc_mu_charge(0),
   Bc_mu_eta(0), Bc_mu_eta_noFit(0),
   Bc_mu_phi(0),
+  Bc_mu_IP3D(0),
+  Bc_mu_IP3D_error(0),
 
   // Muon IDs and other properties
   mu_Chi2(0),
@@ -311,6 +313,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   gen_tau_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_taunu1_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_taunu2_p4.SetPtEtaPhiM(0.,0.,0.,0.);
+  gen_pion_p4.SetPtEtaPhiM(0.,0.,0.,0.);
   gen_b_vtx.SetXYZ(0.,0.,0.);
   gen_jpsi_vtx.SetXYZ(0.,0.,0.);
   gen_nutau_vtx.SetXYZ(0.,0.,0.);
@@ -419,6 +422,23 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
               isNuTau1Present = true;
               gen_taunu1_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
             }
+            else if(abs(iDaughter->pdgId()) == 211 ) 
+            {
+              gen_pion_p4.SetPtEtaPhiM(iDaughter->pt(),iDaughter->eta(), iDaughter->phi(), iDaughter->mass());
+              /*
+              for(size_t k = 0; k<iDaughter->numberOfDaughters(); ++k)
+              { 
+
+                const reco::Candidate *kGrandDaughter = iDaughter->daughter(k);
+                std::cout << "daughetId: " << kGrandDaughter->pdgId() << std::endl;
+                if(abs(kGrandDaughter->pdgId()) == 13)  
+                {
+                  std::cout << "muon is present" << std::endl;
+                }
+              }
+              */
+            }
+
           }
         }
       }
@@ -446,7 +466,24 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       //std::cout << "tau vertex: " << gen_nutau_vtx.Mag() << std::endl;
     //}
   }
-  
+/*
+  if( isMC_ && packedGenParticlesHandle.isValid()){
+    for(auto genPacked = packedGenParticlesHandle->begin(); genPacked != packedGenParticlesHandle->end(); ++genPacked)
+    {
+      if(genPacked->pdgId() == 211)
+      {
+        std::cout << "pdf packed: " << genPacked->pdgId() << std::endl;
+        std::cout << "number of daughter: " << genPacked->numberOfDaughters() << std::endl;
+        for(size_t l = 0; l < genPacked->numberOfDaughters(); l++)
+        {
+          const reco::Candidate *lDaughter = genPacked->daughter(l);
+          if(lDaughter->pdgId() == 211) std::cout << "pion is present" << std::endl;
+        }
+      }
+
+    }
+  }
+ */ 
   //////////////////////////////
   // Get the primary vertex
   //////////////////////////////
@@ -603,12 +640,15 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
       }   
 
+      //reco::Vertex bestVertexConstrained = getPVConstrainedToBS(bestVertex);
+
       TVector3 primaryVertex(bestVertex.x(),bestVertex.y(),0.);
       TVector3 jpsiDecayVertexPosition(jpsiDecayVertex->position().x(),
             jpsiDecayVertex->position().y(),
             0.);
       
       double Lxy_tmp = jpsiDecayVertexPosition.Mag() - primaryVertex.Dot(jpsiDecayVertexPosition) / jpsiDecayVertexPosition.Mag();
+
 
 
         
@@ -679,7 +719,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         auto jpsiGlobalMomentum = jpsiVertexFit->currentState().globalMomentum();
         // computing 3d impact parameter
 
-        const GlobalVector jpsiDirection(jpsiGlobalMomentum.x(), jpsiGlobalMomentum.y(), jpsiGlobalMomentum.z());
+        GlobalVector jpsiDirection(jpsiGlobalMomentum.x(), jpsiGlobalMomentum.y(), jpsiGlobalMomentum.z());
         reco::Vertex::Point jpsiVertexPosition(jpsiDecayVertex->position().x(), jpsiDecayVertex->position().y(), jpsiDecayVertex->position().z());
         const double err00 = jpsiDecayVertex->error().matrix()(0,0);
         const double err11 = jpsiDecayVertex->error().matrix()(1,1);
@@ -700,14 +740,11 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         jpsiVertexError(2,2) = err22;
 
         const reco::Vertex jpsiVertex(jpsiVertexPosition, jpsiVertexError, jpsiDecayVertex->chiSquared(), jpsiDecayVertex->degreesOfFreedom(), 2);
-        std::cout << typeid(jpsiVertex).name() << std::endl;
 
-        std::pair<bool,Measurement1D> result = IPTools::signedImpactParameter3D(*(&transientTrackMu),jpsiDirection,jpsiVertex);
-        //std::cout << typeid(signed_ip3D.apply(transientTrackMu,jpsiDirection,bestVertex).second.value()).name() << std::endl;
-        //std::cout << signed_ip3D.apply(transientTrackMu1,jpsiGlobalMomentum,jpsiVertex).first << std::endl;
-        //Measurement1D ip3D = signed_ip3D.apply(transientTrackMu,jpsiDirection,jpsiVertex).second;
-        //Measurement1D ip3D = signed_ip3D.apply(transientTrackMu,jpsiGlobalMomentum,bestVertex).second;
-        std::cout << result.first << std::endl;
+        SignedImpactParameter3D signed_ip3D;
+        Measurement1D ip3D = signed_ip3D.apply(transientTrackMu,jpsiGlobalMomentum,jpsiVertex).second;
+        std::cout << ip3D.value() << std::endl;
+        std::cout << ip3D.error() << std::endl;
 
         jpsi4V.SetPtEtaPhiM(jpsiGlobalMomentum.perp(), jpsiGlobalMomentum.eta(), jpsiGlobalMomentum.phi(), jpsiVertexFit->currentState().mass());
 
@@ -781,9 +818,18 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           if(isTruthMatch(gen_jpsi_mu2_p4, reco_jpsi_mu2_p3) || isTruthMatch(gen_jpsi_mu1_p4, reco_jpsi_mu2_p3)) truthMatchMu2_tmp = 1;
 
 
-          if(isTruthMatch(gen_mu_p4, reco_mu_p3)) truthMatchMu_tmp = 1;
+          std::cout << "pion mass" << gen_pion_p4.M() << std::endl;
+
+          if(abs(gen_pion_p4.M()) > 0.0)
+          {
+            if(isTruthMatch(gen_pion_p4, reco_mu_p3)) truthMatchMu_tmp = 1;
+          }
+          else{
+            if(isTruthMatch(gen_mu_p4, reco_mu_p3)) truthMatchMu_tmp = 1;
+          }
           if(isSignalDecayPresent && (abs(patMuon3->simMotherPdgId()) == 15)) truthMatchMuSim_tmp = 1;
           if(isNormalizationDecayPresent && (abs(patMuon3->simMotherPdgId()) == 541)) truthMatchMuSim_tmp = 1;
+          if(isBackground1DecayPresent && (abs(patMuon3->simMotherPdgId()) == 541)) truthMatchMuSim_tmp = 1;
 
           truthMatchMuSim->push_back(truthMatchMuSim_tmp);
           truthMatchMu->push_back(truthMatchMu_tmp);
@@ -950,6 +996,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         Bc_mu_charge->push_back(candidateMu->currentState().particleCharge());
         Bc_mu_eta->push_back(kinematicParamMu.momentum().eta());
         Bc_mu_phi->push_back(kinematicParamMu.momentum().phi());
+        Bc_mu_IP3D->push_back(ip3D.value());
+        Bc_mu_IP3D_error->push_back(ip3D.error());
         
         Bc_mu_px_noFit->push_back(patMuon3->px());
         Bc_mu_py_noFit->push_back(patMuon3->py());
@@ -1130,6 +1178,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     Bc_mu_charge->push_back(-99);
     Bc_mu_eta->push_back(-99);
     Bc_mu_phi->push_back(-99);
+    Bc_mu_IP3D->push_back(-99);
+    Bc_mu_IP3D_error->push_back(-99);
     
     Bc_mu_px_noFit->push_back(-99);
     Bc_mu_py_noFit->push_back(-99);
@@ -1318,6 +1368,8 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   Bc_mu_charge->clear();
   Bc_mu_eta->clear();
   Bc_mu_phi->clear();
+  Bc_mu_IP3D->clear();
+  Bc_mu_IP3D_error->clear();
   
   Bc_mu_px_noFit->clear();
   Bc_mu_py_noFit->clear();
@@ -1386,6 +1438,11 @@ BcTo3MuAnalyzer::isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3)
   if(simRecoDeltaR < 0.1) match = 1;
   return match;
 }
+//reco::Vertex
+//BcTo3MuAnalyzer::getPVConstainedToBS(reco::Vertex pv)
+//{
+
+//}
 
 // ------------ method called once each job just before starting event loop  ------------
 void
@@ -1475,6 +1532,8 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("Bc_mu_pz",&Bc_mu_pz);
   tree_->Branch("Bc_mu_eta",&Bc_mu_eta);
   tree_->Branch("Bc_mu_phi",&Bc_mu_phi);
+  tree_->Branch("Bc_mu_IP3D_error",&Bc_mu_IP3D_error);
+  tree_->Branch("Bc_mu_IP3D",&Bc_mu_IP3D);
   tree_->Branch("Bc_mu_px_noFit",&Bc_mu_px_noFit);
   tree_->Branch("Bc_mu_py_noFit",&Bc_mu_py_noFit);
   tree_->Branch("Bc_mu_pz_noFit",&Bc_mu_pz_noFit);
@@ -1582,6 +1641,7 @@ BcTo3MuAnalyzer::beginJob()
     tree_->Branch("gen_tau_p4", "TLorentzVector", &gen_tau_p4);
     tree_->Branch("gen_taunu1_p4", "TLorentzVector", &gen_taunu1_p4);
     tree_->Branch("gen_taunu2_p4", "TLorentzVector", &gen_taunu2_p4);
+    tree_->Branch("gen_pion_p4", "TLorentzVector", &gen_pion_p4);
     tree_->Branch("gen_b_vtx", "TVector3", &gen_b_vtx);
     tree_->Branch("gen_jpsi_vtx", "TVector3", &gen_jpsi_vtx);
     tree_->Branch("gen_nutau_vtx", "TVector3", &gen_nutau_vtx);

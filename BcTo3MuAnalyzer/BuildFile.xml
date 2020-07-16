@@ -8,6 +8,7 @@
 <use   name="DataFormats/PatCandidates"/>
 <use   name="DataFormats/TrackReco"/>
 <use   name="DataFormats/VertexReco"/>
+<use   name="RecoBTag/BTagTools"/>
 <use   name="RecoVertex/PrimaryVertexProducer"/>
 <use   name="RecoVertex/KinematicFit"/>
 <use   name="RecoVertex/KinematicFitPrimitives"/>
