@@ -23,6 +23,8 @@
 #include "DataFormats/PatCandidates/interface/PackedGenParticle.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
 #include "DataFormats/HepMCCandidate/interface/GenParticle.h"
+#include "DataFormats/VertexReco/interface/Vertex.h"
+#include "DataFormats/VertexReco/interface/VertexFwd.h"
 
 
 
@@ -53,6 +55,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
     double GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_vtx);
     short isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3);
+    double getDeltaR(TLorentzVector v1_p4, TLorentzVector v2_p4);
+    reco::Vertex getPVConstrainedToBS(const edm::Event& iEvent,const edm::EventSetup& iSetup, reco::Vertex pv);
 
 
   private:
@@ -93,6 +97,11 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<double> *primaryVertexX, *primaryVertexY, *primaryVertexZ;
     std::vector<double> *primaryVertexXError, *primaryVertexYError, *primaryVertexZError;
     std::vector<double> *primaryVertexXYError, *primaryVertexXZError, *primaryVertexYZError;
+    
+    std::vector<double> *primaryVertexBSCChi2;
+    std::vector<double> *primaryVertexBSCX, *primaryVertexBSCY, *primaryVertexBSCZ;
+    std::vector<double> *primaryVertexBSCXError, *primaryVertexBSCYError, *primaryVertexBSCZError;
+    std::vector<double> *primaryVertexBSCXYError, *primaryVertexBSCXZError, *primaryVertexBSCYZError;
 
     std::vector<double> *jpsiVertexX, *jpsiVertexY, *jpsiVertexZ;
     std::vector<double> *jpsiVertexXError, *jpsiVertexYError, *jpsiVertexZError;
@@ -118,6 +127,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     // J/Psi particles coming from Bc
     std::vector<double> *Bc_jpsi_chi2;
     std::vector<double> *Bc_jpsi_Lxy;
+    std::vector<double> *mu1mu2_deltaR;
+    std::vector<double> *jpsiTrk_deltaR;
     std::vector<double> *jpsiVertexProbability;
 
     std::vector<double> *Bc_jpsi_mass,*Bc_jpsi_pt, *Bc_jpsi_px, *Bc_jpsi_py, *Bc_jpsi_pz;
@@ -171,6 +182,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isMuLoose;
     std::vector<short> *isMuMedium;
     std::vector<short> *isMuHighPtMuon;
+    TH1F *hDzTrkPV;
     TH1F *hEventCounter;
     TH1F *hDimuon0TriggerCounter;
     TH1F *hJpsiTkTriggerCounter;
