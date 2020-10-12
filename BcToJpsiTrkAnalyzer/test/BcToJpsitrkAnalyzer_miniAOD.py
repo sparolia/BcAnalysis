@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
-isSigChannel = False
-isBkg = False
+isSigChannel = True
+isBkg = True
 
 process = cms.Process("Rootuple")
 
@@ -22,27 +22,27 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5000))
+#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(1000000))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5000))
 #process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 inputFilesList = []
-outputRootFileName = 'RootupleBcTo3Mu.root'
+outputRootFileName = 'RootupleBcToJpsiTrk.root'
 decayChannel = 'tau'
 if(isSigChannel):
   decayChannel == 'tau'
   inputFilesList = files_jpsi_taunu
-  outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
+  outputRootFileName = 'RootupleBcToJpsiTrk_tauChannel.root'
 else:
   decayChannel == 'muon'
   inputFilesList = files_jpsi_munu
-  outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
+  outputRootFileName = 'RootupleBcToJpsiTrk_muonChannel.root'
 
 if(isBkg):
   decayChannel == 'jpsiX'
   inputFilesList = files_jpsi_plusX
-  outputRootFileName = 'RootupleBcTo3Mu_bkg.root'
+  outputRootFileName = 'RootupleBcToJpsiTrk_bkg.root'
 
 #outputRootFileName = 'RootupleBcTo3Mu_pionChannel.root'
 
@@ -76,7 +76,7 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
-process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+process.load("RJPsiAnalyzers.BcToJpsiTrkAnalyzer.BcToJpsiTrkAnalyzer_cfi")
 
 process.rootuple.isMC = True
 

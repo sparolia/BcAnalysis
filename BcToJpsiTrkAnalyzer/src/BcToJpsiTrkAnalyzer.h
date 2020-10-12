@@ -1,5 +1,5 @@
-#ifndef _BcTo3MuAnalyzer_h
-#define _BcTo3MuAnalyzer_h
+#ifndef _BcToJpsiTrkAnalyzer_h
+#define _BcToJpsiTrkAnalyzer_h
 
 // system include files
 #include <memory>
@@ -47,16 +47,17 @@
 // class declaration
 //
 
-class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
+class BcToJpsiTrkAnalyzer : public edm::EDAnalyzer  {
   public:
-    explicit BcTo3MuAnalyzer(const edm::ParameterSet&);
-    ~BcTo3MuAnalyzer();
+    explicit BcToJpsiTrkAnalyzer(const edm::ParameterSet&);
+    ~BcToJpsiTrkAnalyzer();
 
     static void fillDescriptions(edm::ConfigurationDescriptions& descriptions);
     double GetLifetime(TLorentzVector b_p4, TVector3 b_vtx, TVector3 jpsi_vtx);
     short isTruthMatch(TLorentzVector sim_p4, TVector3 reco_p3);
     double getDeltaR(TLorentzVector v1_p4, TLorentzVector v2_p4);
     reco::Vertex getPVConstrainedToBS(const edm::Event& iEvent,const edm::EventSetup& iSetup, reco::Vertex pv);
+    int isTriggerMatchDimuon0(const edm::Event& iEvent,const pat::Muon* muon1,const pat::Muon* muon2, reco::Track trk);
 
 
   private:
@@ -88,8 +89,9 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short>  *triggerMatchDimuon0, *triggerMatchDimuon20, *triggerMatchDimuon25;
     std::vector<short>  *triggerMatchJpsi, *triggerMatchJpsiTk, *triggerMatchJpsiTkTk;
 
-    std::vector<short> *truthMatchMu1Sim, *truthMatchMu2Sim, *truthMatchMuSim;
-    std::vector<short> *truthMatchMu1, *truthMatchMu2, *truthMatchMu;
+    std::vector<short> *truthMatchMu1Sim, *truthMatchMu2Sim, *truthMatchTrkSim;
+    std::vector<short> *truthMatchMu1, *truthMatchMu2, *truthMatchTrk;
+    std::vector<short> *isTrkaMuon;
      
     // Primary vertex
     unsigned short nPrimaryVertices;
@@ -114,8 +116,8 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<double> *mu2XError, *mu2YError, *mu2ZError;
     std::vector<double> *mu2XYError, *mu2XZError, *mu2YZError;
 
-    std::vector<double> *muXError, *muYError, *muZError;
-    std::vector<double> *muXYError, *muXZError, *muYZError;
+    std::vector<double> *trkXError, *trkYError, *trkZError;
+    std::vector<double> *trkXYError, *trkXZError, *trkYZError;
     // Bc particle
     unsigned int nBc;
     std::vector<double> *Bc_chi2;
@@ -145,22 +147,22 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
 
     // Muon coming from Bc
     unsigned int nMuons;
-    std::vector<double> *Bc_mu_pt, *Bc_mu_px, *Bc_mu_py, *Bc_mu_pz;
-    std::vector<double> *Bc_mu_px_noFit, *Bc_mu_py_noFit, *Bc_mu_pz_noFit;
-    std::vector<short> *Bc_mu_charge;
-    std::vector<double> *Bc_mu_eta;
-    std::vector<double> *Bc_mu_eta_noFit;
-    std::vector<double> *Bc_mu_phi;
-    std::vector<double> *Bc_mu_IP3D;
-    std::vector<double> *Bc_mu_IP3D_error;
+    std::vector<double> *Bc_trk_pt, *Bc_trk_px, *Bc_trk_py, *Bc_trk_pz;
+    std::vector<double> *Bc_trk_px_noFit, *Bc_trk_py_noFit, *Bc_trk_pz_noFit;
+    std::vector<short> *Bc_trk_charge;
+    std::vector<double> *Bc_trk_eta;
+    std::vector<double> *Bc_trk_eta_noFit;
+    std::vector<double> *Bc_trk_phi;
+    std::vector<double> *Bc_trk_IP3D;
+    std::vector<double> *Bc_trk_IP3D_error;
     
     // Muon IDs and other properties
-    std::vector<double> *mu_Chi2;
+    std::vector<double> *trk_Chi2;
     std::vector<double> *jpsi_mu1_Chi2, *jpsi_mu2_Chi2;
-    std::vector<short> *mu_NumHits, *mu_NumPixelHits;
+    std::vector<short> *trk_NumHits, *trk_NumPixelHits;
     std::vector<short> *jpsi_mu1_NumHits, *jpsi_mu1_NumPixelHits;
     std::vector<short> *jpsi_mu2_NumHits, *jpsi_mu2_NumPixelHits;
-    std::vector<double> *mu_Dxy, *mu_Dz;
+    std::vector<double> *trk_Dxy, *trk_Dz;
     std::vector<double> *jpsi_mu1_Dxy, *jpsi_mu1_Dz;
     std::vector<double> *jpsi_mu2_Dxy, *jpsi_mu2_Dz;
     std::vector<double> *muonDCA;
@@ -174,14 +176,14 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     std::vector<short> *isMu1Medium, *isMu2Medium;
     std::vector<short> *isMu1HighPtMuon, *isMu2HighPtMuon;
 
-    std::vector<short> *isMuSoft;
-    std::vector<short> *isMuGlobal;
-    std::vector<short> *isMuTracker;
-    std::vector<short> *isMuTight;
-    std::vector<short> *isMuPF;
-    std::vector<short> *isMuLoose;
-    std::vector<short> *isMuMedium;
-    std::vector<short> *isMuHighPtMuon;
+    std::vector<short> *isTrkSoft;
+    std::vector<short> *isTrkGlobal;
+    std::vector<short> *isTrkTracker;
+    std::vector<short> *isTrkTight;
+    std::vector<short> *isTrkPF;
+    std::vector<short> *isTrkLoose;
+    std::vector<short> *isTrkMedium;
+    std::vector<short> *isTrkHighPtMuon;
     TH1F *hDzTrkPV;
     TH1F *hEventCounter;
     TH1F *hDimuon0TriggerCounter;
