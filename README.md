@@ -9,7 +9,8 @@ cmsrel CMSSW_10_2_9
 cd CMSSW_10_2_9/src/
 cmsenv
 voms-proxy-init -voms cms -valid 192:00
-git clone https://github.com/sparolia/BcAnalysis.git
+git clone https://github.com/gabriel-rmrz/BcAnalysis.git RJPsiAnalyzers
+#git clone https://github.com/sparolia/BcAnalysis.git
 scram b
 cd RJPsiAnalyzers/BcTo3MuAnalyzer/test
 cmsRun BcTo3MuAnalyzer_miniAOD.py
