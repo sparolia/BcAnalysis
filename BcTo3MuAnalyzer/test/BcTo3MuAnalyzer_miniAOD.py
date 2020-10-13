@@ -1,10 +1,10 @@
 
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX,files_jpsi_pion
-isSigChannel = False
+isSigChannel = True
 isNormChannel = False
 isBkg = False
-isPion = True
+isPion = False
 
 process = cms.Process("Rootuple")
 
@@ -25,7 +25,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 inputFilesList = []
