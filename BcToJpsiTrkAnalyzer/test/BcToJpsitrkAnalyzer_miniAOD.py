@@ -1,7 +1,7 @@
 import FWCore.ParameterSet.Config as cms
 from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
 isSigChannel = True
-isBkg = True
+isBkg = False
 
 process = cms.Process("Rootuple")
 
@@ -76,7 +76,7 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
-process.load("RJPsiAnalyzers.BcToJpsiTrkAnalyzer.BcToJpsiTrkAnalyzer_cfi")
+process.load("BcAnalysis.BcToJpsiTrkAnalyzer.BcToJpsiTrkAnalyzer_cfi")
 
 process.rootuple.isMC = True
 

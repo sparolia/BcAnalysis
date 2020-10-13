@@ -1,7 +1,10 @@
+
 import FWCore.ParameterSet.Config as cms
-from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX
-isSigChannel = False
+from inputFilesList import files_jpsi_munu, files_jpsi_taunu, files_jpsi_plusX,files_jpsi_pion
+isSigChannel = True
+isNormChannel = False
 isBkg = False
+isPion = False
 
 process = cms.Process("Rootuple")
 
@@ -22,9 +25,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_data')
 process.MessageLogger.cerr.FwkReport.reportEvery = 1000
 process.options = cms.untracked.PSet(wantSummary = (cms.untracked.bool(True))
     )
-process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(10000))
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(5000))
-#process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
+process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
 
 inputFilesList = []
@@ -34,7 +35,7 @@ if(isSigChannel):
   decayChannel == 'tau'
   inputFilesList = files_jpsi_taunu
   outputRootFileName = 'RootupleBcTo3Mu_tauChannel.root'
-else:
+if(isNormChannel):
   decayChannel == 'muon'
   inputFilesList = files_jpsi_munu
   outputRootFileName = 'RootupleBcTo3Mu_muonChannel.root'
@@ -42,17 +43,19 @@ else:
 if(isBkg):
   decayChannel == 'jpsiX'
   inputFilesList = files_jpsi_plusX
-  outputRootFileName = 'RootupleBcTo3Mu_bkg.root'
+  outputRootFileName = 'RootupleBcTo3Mu_jpsiXChannel.root'
 
-#outputRootFileName = 'RootupleBcTo3Mu_pionChannel.root'
+if(isPion):
+  decayChannel == 'Pion'
+  inputFilesList = files_jpsi_pion
+  outputRootFileName = 'RootupleBcTo3Mu_pionChannel.root'
 
 process.source = cms.Source("PoolSource",
     duplicateCheckMode = cms.untracked.string("noDuplicateCheck"),
     fileNames = cms.untracked.vstring(
-        #files_jpsi_munu
-        #files_jpsi_taunu
-        #'/store/mc/RunIIAutumn18MiniAOD/BcToJpsiMuNu_JpsiToMuMu_13TeV-TuneCP5-evtgen-pythia8/MINIAODSIM/102X_upgrade2018_realistic_v15-v1/230000/A9DE66AD-7301-004C-8D87-3FBE21CA63BD.root'
-        #'file:mini-aod-4031228.root'
+        #'files_jpsi_munu'
+        #'files_jpsi_taunu'
+        #'lhe-bc1s-psipi/batch2/mini-aod-6907157.root'
         #'file:miniAOD_99.root' 
         #'file:mini-aod-1829052.root'
         #'/store/data/Run2018A/Charmonium/MINIAOD/17Sep2018-v1/90000/FBB6E58B-3F6C-004A-A1E3-21AB715F7D2B.root'
@@ -76,7 +79,7 @@ process.triggerSelection = cms.EDFilter('TriggerResultsFilter',
     throw = cms.bool(False)
     )
 
-process.load("RJPsiAnalyzers.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
+process.load("BcAnalysis.BcTo3MuAnalyzer.BcTo3MuAnalyzer_cfi")
 
 process.rootuple.isMC = True
 
