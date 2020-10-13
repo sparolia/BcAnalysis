@@ -1,3 +1,8 @@
+
+
+
+
+
 // -*- C++ -*-
 //
 // Package:    RJPsiAnalyzers/BcTo3MuAnalyzer
@@ -122,6 +127,7 @@ BcTo3MuAnalyzer::BcTo3MuAnalyzer(const edm::ParameterSet& iConfig)
   nPrimaryVertices(0),
   primaryVertexChi2(0),
   primaryVertexX(0), primaryVertexY(0), primaryVertexZ(0),
+  allPrimaryVertexX(0), allPrimaryVertexY(0), allPrimaryVertexZ(0),
   primaryVertexXError(0), primaryVertexYError(0), primaryVertexZError(0),
   primaryVertexXYError(0), primaryVertexXZError(0), primaryVertexYZError(0),
   
@@ -514,6 +520,17 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   lumiblock = iEvent.id().luminosityBlock();
   run = iEvent.id().run();
   event = iEvent.id().event();
+
+  reco::Vertex tempPV;
+  const reco::VertexCollection* pVertices = thePrimaryVerticesHandle.product();
+  for(reco::VertexCollection::const_iterator  primVertex = pVertices->begin(); primVertex!= pVertices->end(); primVertex++)
+    {
+      tempPV = *(primVertex);
+      allPrimaryVertexX->push_back(tempPV.x());
+      allPrimaryVertexY->push_back(tempPV.y());
+      allPrimaryVertexZ->push_back(tempPV.z());
+    }
+
 
   /////////////////////////////////////////////////////
   // The Bc recontruction will consist first
@@ -1179,6 +1196,10 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
     primaryVertexXZError->push_back(-99);
     primaryVertexYZError->push_back(-99);
 
+    allPrimaryVertexX->push_back(-99);
+    allPrimaryVertexY->push_back(-99);
+    allPrimaryVertexZ->push_back(-99);
+
     primaryVertexBSCX->push_back(-99);
     primaryVertexBSCXError->push_back(-99);
     primaryVertexBSCY->push_back(-99);
@@ -1350,6 +1371,10 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   primaryVertexXYError->clear();
   primaryVertexXZError->clear();
   primaryVertexYZError->clear();
+
+  allPrimaryVertexX->clear();
+  allPrimaryVertexY->clear();
+  allPrimaryVertexZ->clear();
 
   primaryVertexBSCX->clear();
   primaryVertexBSCXError->clear();
@@ -1643,6 +1668,10 @@ BcTo3MuAnalyzer::beginJob()
   tree_->Branch("primaryVertexYZError",&primaryVertexYZError);
   tree_->Branch("primaryVertexXZError",&primaryVertexXZError);
   tree_->Branch("primaryVertexChi2",&primaryVertexChi2);
+
+  tree_->Branch("allPrimaryVertexX",&allPrimaryVertexX);
+  tree_->Branch("allPrimaryVertexY",&allPrimaryVertexY);
+  tree_->Branch("allPrimaryVertexZ",&allPrimaryVertexZ);
 
   tree_->Branch("primaryVertexBSCX",&primaryVertexBSCX);
   tree_->Branch("primaryVertexBSCY",&primaryVertexBSCY);

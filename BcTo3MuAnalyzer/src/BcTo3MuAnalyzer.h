@@ -95,6 +95,7 @@ class BcTo3MuAnalyzer : public edm::EDAnalyzer  {
     unsigned short nPrimaryVertices;
     std::vector<double> *primaryVertexChi2;
     std::vector<double> *primaryVertexX, *primaryVertexY, *primaryVertexZ;
+    std::vector<double> *allPrimaryVertexX, *allPrimaryVertexY, *allPrimaryVertexZ;
     std::vector<double> *primaryVertexXError, *primaryVertexYError, *primaryVertexZError;
     std::vector<double> *primaryVertexXYError, *primaryVertexXZError, *primaryVertexYZError;
     
