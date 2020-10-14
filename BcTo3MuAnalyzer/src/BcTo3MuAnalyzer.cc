@@ -1,8 +1,3 @@
-
-
-
-
-
 // -*- C++ -*-
 //
 // Package:    RJPsiAnalyzers/BcTo3MuAnalyzer
@@ -30,8 +25,6 @@
 #include "RecoVertex/KinematicFitPrimitives/interface/KinematicParticleFactoryFromTransientTrack.h"
 #include "RecoVertex/KinematicFit/interface/KinematicConstrainedVertexFitter.h"
 #include "RecoVertex/KinematicFit/interface/TwoTrackMassKinematicConstraint.h"
-
-
 
 // (Default) user include files
 #include "FWCore/Framework/interface/Frameworkfwd.h"
@@ -524,12 +517,12 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
   reco::Vertex tempPV;
   const reco::VertexCollection* pVertices = thePrimaryVerticesHandle.product();
   for(reco::VertexCollection::const_iterator  primVertex = pVertices->begin(); primVertex!= pVertices->end(); primVertex++)
-    {
-      tempPV = *(primVertex);
-      allPrimaryVertexX->push_back(tempPV.x());
-      allPrimaryVertexY->push_back(tempPV.y());
-      allPrimaryVertexZ->push_back(tempPV.z());
-    }
+  {
+    tempPV = *(primVertex);
+    allPrimaryVertexX->push_back(tempPV.x());
+    allPrimaryVertexY->push_back(tempPV.y());
+    allPrimaryVertexZ->push_back(tempPV.z());
+  }
 
 
   /////////////////////////////////////////////////////
@@ -912,6 +905,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         short truthMatchMu_tmp = 0;
         if(isMC_)
         {
+          std::cout << "Using MC info" << std::endl;
           // Truth matching using sim information form pat::muons
           if (patMu1->simMotherPdgId() == 443) truthMatchMu1Sim_tmp =1; 
           if (patMu2->simMotherPdgId() == 443) truthMatchMu2Sim_tmp =1;
@@ -942,14 +936,10 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
           if(isBackground1DecayPresent && (abs(patMuon3->simMotherPdgId()) == 541)) truthMatchMuSim_tmp = 1;
           //std::cout << "ID: " << patMuon3->simPdgId() << std::endl;
           //std::cout << "motherID: " << patMuon3->simMotherPdgId() << std::endl;
+          truthMatchMuSim->push_back(truthMatchMuSim_tmp);
+          truthMatchMu->push_back(truthMatchMu_tmp);
 
         }
-
-        truthMatchMuSim->push_back(truthMatchMuSim_tmp);
-        truthMatchMu->push_back(truthMatchMu_tmp);
-
-        
-
 
         // Filling the decays information
         background1DecayPresent->push_back(isBackground1DecayPresent);
@@ -1026,7 +1016,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         triggerMatchJpsiTkTk->push_back(triggerMatchJpsiTkTk_tmp);
         triggerMatchJpsi->push_back(triggerMatchJpsi_tmp);
           
-
 
         if(isMC_)
         {
@@ -1151,6 +1140,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         isMuLoose->push_back(muon::isLooseMuon(*patMuon3));
         isMuMedium->push_back(muon::isMediumMuon(*patMuon3));
         isMuHighPtMuon->push_back(patMuon3->isHighPtMuon(bestVertex));
+
 
         nBc++;
       }
@@ -1833,7 +1823,6 @@ BcTo3MuAnalyzer::beginJob()
 
   if(isMC_)
   {
-
     tree_->Branch("truthMatchMu1Sim",&truthMatchMu1Sim);
     tree_->Branch("truthMatchMu2Sim",&truthMatchMu2Sim);
     tree_->Branch("truthMatchMuSim",&truthMatchMuSim);
