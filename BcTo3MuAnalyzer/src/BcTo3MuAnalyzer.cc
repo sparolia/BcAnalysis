@@ -50,6 +50,7 @@
 #include "DataFormats/MuonReco/interface/Muon.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 #include "DataFormats/PatCandidates/interface/PackedTriggerPrescales.h"
+#include "DataFormats/PatCandidates/interface/TriggerObjectStandAlone.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "RecoVertex/KalmanVertexFit/interface/KalmanVertexFitter.h"
 
@@ -263,6 +264,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
   edm::Handle<pat::PackedTriggerPrescales> triggerPrescalesHandle;
   iEvent.getByToken(triggerPrescales_Label, triggerPrescalesHandle);
+
   
   //////////////////////////////
   // Trigger test
@@ -542,7 +544,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
       // Pairing only opposite signed muons
       //TODO: Save also same sign pairs to study
-      if((patMu1->charge())*(patMu2->charge()) != -1) continue;
+      if((int)((patMu1->charge())*(patMu2->charge())) != -1) continue;
       
       // Getting tracks from the muons
       reco::TrackRef globalTrackMu1;
@@ -562,6 +564,24 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         globalTrackMu2 = patMu1->track();
       }
       */
+      //Check trigger
+
+      int triggerMatchJpsiTk_tmp = 0;
+      int triggerMatchDimuon0_tmp = 0;
+
+      const pat::Muon* muon1 = &(*patMu1);
+      const pat::Muon* muon2 = &(*patMu2);
+        
+
+      if(muon1->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*")!=nullptr ) triggerMatchDimuon0_tmp = 1;
+      if(muon1->triggerObjectMatchByPath("HLT_DoubleMu4_JpsiTrk_Displaced_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_DoubleMu4_JpsiTrk_Displaced_v*")!=nullptr) triggerMatchJpsiTk_tmp= 1;
+
+      if(!triggerMatchJpsiTk_tmp and !triggerMatchDimuon0_tmp) continue;
+
+      //muon1->unpackTriggerObjectPathNames(&triggerNames);
+      //(muon1->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*"))->unpackFilterLabels(iEvent, triggerResultsHandle);
+      const pat::TriggerObjectStandAloneCollection muontrg = muon1->triggerObjectMatchesByFilter("hltVertexmumuFilterJpsiMuon3p5");
+      //if(muon1TrgFilters->hasFilterLabel("hltVertexmumuFilterJpsiMuon3p5")) std::cout << "Ohhhhhhh"<< std::endl;
 
       // Check for the track reference
       if(globalTrackMu1.isNull() || globalTrackMu2.isNull()) continue;
@@ -636,16 +656,30 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       RefCountedKinematicVertex jpsiDecayVertex = jpsiVertexFitTree->currentDecayVertex();
       reco::TransientTrack jpsiTrack =jpsiVertexFit->refittedTransientTrack();
 
+      // JPsi selection cuts
+
       if(jpsiDecayVertex->chiSquared() <0.0) continue;
       if(jpsiDecayVertex->chiSquared() >50.0) continue;
 
-      if(jpsiVertexFit->currentState().mass()<2.6) continue;
-      if(jpsiVertexFit->currentState().mass()>3.6) continue;
+      
+      // JPsi windows mass dependent on eta
+      float jpsiMassSigma = 0.050;
+      if(patMu1->momentum().eta() < 1.0 and patMu2->momentum().eta()< 1.0)
+      { 
+        if(jpsiVertexFit->currentState().mass()< (jpsiMass - jpsiMassSigma)) continue;
+        if(jpsiVertexFit->currentState().mass()> (jpsiMass + jpsiMassSigma)) continue;
+      }
+      else
+      {
+        if(jpsiVertexFit->currentState().mass()< (jpsiMass - 2*jpsiMassSigma)) continue;
+        if(jpsiVertexFit->currentState().mass()> (jpsiMass + 2*jpsiMassSigma)) continue;
+      }
+
       //if(jpsiVertexFit->currentState().globalMomentum().perp() < 8) continue;
 
       double jpsiProb_tmp = TMath::Prob(jpsiDecayVertex->chiSquared(),(int)jpsiDecayVertex->degreesOfFreedom());
 
-      if(jpsiProb_tmp <0.0) continue;
+      if(jpsiProb_tmp <0.01) continue;
 
       // Chosing the closest PV in Z direction to the JPsi trajectory projection.
       double dzMin = 1000000.;
@@ -660,7 +694,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         }
       }   
 
-      //template <typename T> std::string type_name();
       
       //std::cout << typeid(bestVertex).name() << std::endl;
       /*
@@ -693,8 +726,7 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
       double Lxy_tmp = jpsiDecayVertexPosition.Mag() - primaryVertex.Dot(jpsiDecayVertexPosition) / jpsiDecayVertexPosition.Mag();
 
 
-
-        
+     
 
       //std::cout << boostToJpsiRestFrame.Mag() << std::endl;
       //TLorentzVector jpsiBoosted1 = jpsi4V;
@@ -871,17 +903,16 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
 
         // Check for trigger matching
   
+        triggerMatchJpsiTk_tmp = 0;
+        triggerMatchDimuon0_tmp = 0;
         int triggerMatchDimuon20_tmp = 0;
         int triggerMatchDimuon25_tmp = 0;
-        int triggerMatchJpsiTk_tmp = 0;
-        int triggerMatchDimuon0_tmp = 0;
         int triggerMatchJpsi_tmp = 0;
         int triggerMatchJpsiTkTk_tmp = 0;
   
-        const pat::Muon* muon1 = &(*patMu1);
-        const pat::Muon* muon2 = &(*patMu2);
         const pat::Muon* muon3 = &(*patMuon3);
         
+
         if(muon1->triggerObjectMatchByPath("HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon20_Jpsi_Barrel_Seagulls_v*")!=nullptr) triggerMatchDimuon20_tmp = 1;
         if(muon1->triggerObjectMatchByPath("HLT_Dimuon25_Jpsi_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon25_Jpsi_v*")!=nullptr) triggerMatchDimuon25_tmp = 1;
         if(muon1->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*")!=nullptr && muon2->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*")!=nullptr && muon3->triggerObjectMatchByPath("HLT_Dimuon0_Jpsi3p5_Muon2_v*")!=nullptr) triggerMatchDimuon0_tmp = 1;
@@ -905,7 +936,6 @@ BcTo3MuAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSetup
         short truthMatchMu_tmp = 0;
         if(isMC_)
         {
-          std::cout << "Using MC info" << std::endl;
           // Truth matching using sim information form pat::muons
           if (patMu1->simMotherPdgId() == 443) truthMatchMu1Sim_tmp =1; 
           if (patMu2->simMotherPdgId() == 443) truthMatchMu2Sim_tmp =1;
